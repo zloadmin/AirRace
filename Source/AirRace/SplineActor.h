@@ -49,8 +49,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
 	int DistanceBetweenPoints = 100;
 
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1.0f, ClampMax = 10000.0f))
-	// float TurnAngle = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 0, ClampMax = 10000))
+	int ClimbAngle = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 0, ClampMax = 100))
+	int SplinePointClimbStart = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1, ClampMax = 100))
+	int SplinePointClimbEnd = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1000, ClampMax = 1000000))
 	int Radius = 0;
@@ -70,6 +76,7 @@ public:
 
 	void GenerateSplinePoints();
 	void MoveSplinePointsToCycle();
+	void ClimbSplinePoints();
 	void GenerateStaticMesh();
 	float GetRandomForm();
 

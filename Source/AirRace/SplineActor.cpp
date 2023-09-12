@@ -13,14 +13,14 @@ ASplineActor::ASplineActor()
 	{
 		SetRootComponent(Spline);
 	}
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(
+		TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
 	if (MeshAsset.Object)
 	{
 		StaticMesh = MeshAsset.Object;
 	}
 
 	RandomForm = GetRandomForm();
-	
 }
 
 // Called when the game starts or when spawned
@@ -38,9 +38,10 @@ void ASplineActor::Tick(float DeltaTime)
 void ASplineActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
+
 	if (!StaticMesh) return;
 	MoveSplinePointsToCycle();
+	ClimbSplinePoints();
 	GenerateStaticMesh();
 }
 
@@ -75,6 +76,26 @@ void ASplineActor::MoveSplinePointsToCycle()
 
 		UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
 		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::Local, true);
+	}
+}
+
+void ASplineActor::ClimbSplinePoints()
+{
+	if (!ClimbAngle) return;
+	double Angle = 0;
+	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
+	{
+		if (SplineCount >= SplinePointClimbStart)
+		{
+			// If steel in period between points start and end add angle else keep current angle 
+			if(SplineCount <= SplinePointClimbEnd)
+			{
+				Angle += ClimbAngle;
+			}
+			FVector CurrentPoint = Spline->GetLocationAtSplineInputKey(SplineCount, ESplineCoordinateSpace::Local);
+			FVector CurrentPointWithClimb = FVector(CurrentPoint.X, CurrentPoint.Y, CurrentPoint.Z + Angle);
+			Spline->SetLocationAtSplinePoint(SplineCount, CurrentPointWithClimb, ESplineCoordinateSpace::Local, true);
+		}
 	}
 }
 

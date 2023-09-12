@@ -9,10 +9,6 @@ ALongTurnRoadActor::ALongTurnRoadActor()
 	SplinePoints = 10 + (20 * RandomForm);
 	Radius = 1000 + (1000 * RandomForm);
 	DegreeStep = 90 / SplinePoints;
-
+	
 	GenerateSplinePoints();
-	// SplinePoints = 10 + RandomForm / 5; // 10 - 30
-	// Radius = RandomForm * 20; 
-	// Roll = 0;
-	//
 }

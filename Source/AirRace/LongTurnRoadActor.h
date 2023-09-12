@@ -15,5 +15,4 @@ class AIRRACE_API ALongTurnRoadActor : public ASplineActor
 	GENERATED_BODY()
 public:
 	ALongTurnRoadActor();
-	
 };
