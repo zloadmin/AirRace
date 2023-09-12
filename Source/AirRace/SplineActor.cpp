@@ -12,8 +12,8 @@ ASplineActor::ASplineActor()
 	if (Spline)
 	{
 		SetRootComponent(Spline);
-		GenerateSplinePoints();
 	}
+	RandomForm = GetRandomForm();
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +33,7 @@ void ASplineActor::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	if (!StaticMesh) return;
 	
+	GenerateSplinePoints();
 	MoveSplinePointsToCycle();
 	GenerateStaticMesh();
 }
@@ -49,6 +50,8 @@ void ASplineActor::GenerateSplinePoints()
 
 void ASplineActor::MoveSplinePointsToCycle()
 {
+	if(!Radius) return;
+	
 	const FVector CenterOfRadius(0 - Radius, 0, 0);
 	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 	
@@ -83,10 +86,10 @@ void ASplineActor::GenerateStaticMesh()
 		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);
 
 		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
-		StartPoint.Y = StartPoint.Y + 200;
+		// StartPoint.Y = StartPoint.Y + 200;
 		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
 		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
-		EndPoint.Y = EndPoint.Y + 200;
+		// EndPoint.Y = EndPoint.Y + 200;
 		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
 
 		SplineMeshComponent->SetStartAndEnd(StartPoint, StartTangent, EndPoint, EndTangent, true);
@@ -99,4 +102,9 @@ void ASplineActor::GenerateStaticMesh()
 		SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
 		SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
+}
+
+int ASplineActor::GetRandomForm()
+{
+	return FMath::RandRange(1, 99);
 }
