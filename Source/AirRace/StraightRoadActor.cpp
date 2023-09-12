@@ -7,4 +7,5 @@ AStraightRoadActor::AStraightRoadActor()
 {
 	Radius = 0; Roll = 0;
 	SplinePoints = 10 + RandomForm / 5;
+	GenerateSplinePoints();
 }

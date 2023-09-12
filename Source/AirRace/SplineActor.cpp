@@ -3,7 +3,7 @@
 
 #include "SplineActor.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "Engine/StaticMesh.h"
 
 // Sets default values
 ASplineActor::ASplineActor()
@@ -14,6 +14,16 @@ ASplineActor::ASplineActor()
 		SetRootComponent(Spline);
 	}
 	RandomForm = GetRandomForm();
+
+	
+	static ConstructorHelpers::FObjectFinder<UStaticMesh>MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
+	if(MeshAsset.Object)
+	{
+		StaticMesh = MeshAsset.Object;
+	} else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Cannot set static mesh")));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -32,8 +42,6 @@ void ASplineActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	if (!StaticMesh) return;
-	
-	GenerateSplinePoints();
 	MoveSplinePointsToCycle();
 	GenerateStaticMesh();
 }
@@ -86,10 +94,10 @@ void ASplineActor::GenerateStaticMesh()
 		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);
 
 		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
-		// StartPoint.Y = StartPoint.Y + 200;
+		StartPoint.Y = StartPoint.Y - 200; // TODO: Make minus half of static mesh
 		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
 		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
-		// EndPoint.Y = EndPoint.Y + 200;
+		EndPoint.Y = EndPoint.Y - 200; // TODO: Make minus half of static mesh
 		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
 
 		SplineMeshComponent->SetStartAndEnd(StartPoint, StartTangent, EndPoint, EndTangent, true);
@@ -98,9 +106,9 @@ void ASplineActor::GenerateStaticMesh()
 		
 		// TODO: disable rolling for first and last point
 		// TODO: make double roll
-		SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
-		SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
-		SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		// SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
+		// SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
+		// SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 }
 

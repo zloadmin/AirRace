@@ -31,6 +31,9 @@ public:
 	USplineComponent* Spline;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline")
+	UStaticMeshComponent* StaticMeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline")
 	UStaticMesh* StaticMesh;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline")
