@@ -13,17 +13,14 @@ ASplineActor::ASplineActor()
 	{
 		SetRootComponent(Spline);
 	}
-	RandomForm = GetRandomForm();
-
-	
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
-	if(MeshAsset.Object)
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
+	if (MeshAsset.Object)
 	{
 		StaticMesh = MeshAsset.Object;
-	} else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Cannot set static mesh")));
 	}
+
+	RandomForm = GetRandomForm();
+	
 }
 
 // Called when the game starts or when spawned
@@ -41,6 +38,7 @@ void ASplineActor::Tick(float DeltaTime)
 void ASplineActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+	
 	if (!StaticMesh) return;
 	MoveSplinePointsToCycle();
 	GenerateStaticMesh();
@@ -55,24 +53,25 @@ void ASplineActor::GenerateSplinePoints()
 }
 
 
-
 void ASplineActor::MoveSplinePointsToCycle()
 {
-	if(!Radius) return;
-	
+	if (!Radius) return;
+
 	const FVector CenterOfRadius(0 - Radius, 0, 0);
 	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
-	
+
 	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
 	{
 		const float Degree = SplineCount * DegreeStep;
 
 		// x=x0+r⋅cos δ
-		UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / 180.0));
+		UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius,
+		       UKismetMathLibrary::Cos(Degree * PI / 180.0));
 		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / 180.0);
 		// y=y0+r⋅sin δ
-		UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/180));
-		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree*PI/180);
+		UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius,
+		       UKismetMathLibrary::Sin(Degree*PI/180));
+		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / 180);
 
 		UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
 		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::Local, true);
@@ -94,16 +93,16 @@ void ASplineActor::GenerateStaticMesh()
 		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);
 
 		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
-		StartPoint.Y = StartPoint.Y - 200; // TODO: Make minus half of static mesh
+		// StartPoint.Y = StartPoint.Y - 200; // TODO: Make minus half of static mesh
 		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
 		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
-		EndPoint.Y = EndPoint.Y - 200; // TODO: Make minus half of static mesh
+		// EndPoint.Y = EndPoint.Y - 200; // TODO: Make minus half of static mesh
 		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
 
 		SplineMeshComponent->SetStartAndEnd(StartPoint, StartTangent, EndPoint, EndTangent, true);
 		SplineMeshComponent->SetForwardAxis(ForwardAxis);
 
-		
+
 		// TODO: disable rolling for first and last point
 		// TODO: make double roll
 		// SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
@@ -112,7 +111,11 @@ void ASplineActor::GenerateStaticMesh()
 	}
 }
 
-int ASplineActor::GetRandomForm()
+float ASplineActor::GetRandomForm()
 {
-	return FMath::RandRange(1, 99);
+	// if (PreSetRandomForm)
+	// {
+	// 	return PreSetRandomForm;
+	// }
+	return FMath::RandRange(0.0f, 1.0f);
 }

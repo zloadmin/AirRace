@@ -53,10 +53,17 @@ public:
 	// float TurnAngle = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1000, ClampMax = 1000000))
-	int Radius = 1000;
+	int Radius = 0;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1.0f, ClampMax = 45.0f))
-	float DegreeStep = 10.0f;
+	float DegreeStep = 0.0f;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1, ClampMax = 100))
+	int PreSetRandomForm;
+
+	UPROPERTY(VisibleAnywhere)
+	float RandomForm;
 	
 	
 	virtual void OnConstruction(const FTransform& Transform) override;
@@ -64,6 +71,6 @@ public:
 	void GenerateSplinePoints();
 	void MoveSplinePointsToCycle();
 	void GenerateStaticMesh();
-	int GetRandomForm();
-	int RandomForm;
+	float GetRandomForm();
+
 };
