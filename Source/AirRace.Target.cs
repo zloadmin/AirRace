@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class AirRaceTarget : TargetRules
 {
-	public AirRaceTarget( TargetInfo Target) : base(Target)
+	public AirRaceTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;

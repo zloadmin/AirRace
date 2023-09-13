@@ -4,6 +4,7 @@
 #include "SplineActor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ASplineActor::ASplineActor()
@@ -19,7 +20,14 @@ ASplineActor::ASplineActor()
 	{
 		StaticMesh = MeshAsset.Object;
 	}
-
+	
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
+	BoxComponent->SetBoxExtent(FVector(10, 300, 300), true);
+	BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	BoxComponent->SetRelativeLocation(FVector(10, 0, 0));
+	BoxComponent->SetGenerateOverlapEvents(true);
+	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
+	
 	RandomForm = GetRandomForm();
 }
 
@@ -33,6 +41,20 @@ void ASplineActor::BeginPlay()
 void ASplineActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+// void ASplineActor::OnOverlapStartBegin(AActor* Other)
+// {
+// }
+
+// void ASplineActor::OnOverlapStartEnd(AActor* OverlappedActor, AActor* OtherActor)
+// {
+// }
+
+void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
 }
 
 void ASplineActor::OnConstruction(const FTransform& Transform)
@@ -128,7 +150,8 @@ void ASplineActor::GenerateStaticMesh()
 		// TODO: make double roll
 		// SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
 		// SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
-		// SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		
+		SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 }
 

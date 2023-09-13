@@ -5,7 +5,7 @@
 
 AClimbRoadActor::AClimbRoadActor()
 {
-	RandomForm = 0.0f;
+	
 	SplinePoints = 10 + (20 * RandomForm);
 	ClimbAngle = 10 + (20 * RandomForm);
 	SplinePointClimbStart = 0;

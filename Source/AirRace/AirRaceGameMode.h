@@ -4,14 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "AirRaceGameModeBase.generated.h"
+#include "AirRaceGameMode.generated.h"
 
-/**
- * 
- */
-UCLASS()
-class AIRRACE_API AAirRaceGameModeBase : public AGameModeBase
+UCLASS(minimalapi)
+class AAirRaceGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+	AAirRaceGameMode();
 };
+
+
+
