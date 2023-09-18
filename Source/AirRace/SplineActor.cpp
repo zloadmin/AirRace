@@ -2,6 +2,8 @@
 
 
 #include "SplineActor.h"
+
+#include "AirRaceGameState.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
@@ -20,14 +22,14 @@ ASplineActor::ASplineActor()
 	{
 		StaticMesh = MeshAsset.Object;
 	}
-	
+
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
 	BoxComponent->SetBoxExtent(FVector(10, 300, 300), true);
 	BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	BoxComponent->SetRelativeLocation(FVector(10, 0, 0));
+	BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
 	BoxComponent->SetGenerateOverlapEvents(true);
 	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
-	
+
 	RandomForm = GetRandomForm();
 }
 
@@ -52,9 +54,18 @@ void ASplineActor::Tick(float DeltaTime)
 // }
 
 void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                       const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
+	UWorld* const World = GetWorld();
+	if (World != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
+		AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
+		AirRaceGameState->GenerateNextRoad();
+		// AirRaceGameState-
+	}
 }
 
 void ASplineActor::OnConstruction(const FTransform& Transform)
@@ -97,7 +108,7 @@ void ASplineActor::MoveSplinePointsToCycle()
 		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / 180);
 
 		UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
-		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::Local, true);
+		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);
 	}
 }
 
@@ -110,7 +121,7 @@ void ASplineActor::ClimbSplinePoints()
 		if (SplineCount >= SplinePointClimbStart)
 		{
 			// If steel in period between points start and end add angle else keep current angle 
-			if(SplineCount <= SplinePointClimbEnd)
+			if (SplineCount <= SplinePointClimbEnd)
 			{
 				Angle += ClimbAngle;
 			}
@@ -123,6 +134,18 @@ void ASplineActor::ClimbSplinePoints()
 
 void ASplineActor::GenerateStaticMesh()
 {
+	UWorld* const World = GetWorld();
+	
+	if(World == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("WORD NOT EXISTS")));
+		return;
+	}
+	if(!Spline->GetNumberOfSplinePoints())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPLINE NOT EXISTS")));
+		return;
+	}
 	const float RollStep = Roll > 0.0f ? Roll / Spline->GetNumberOfSplinePoints() : 0.0f;
 	for (int SplineCount = 0; SplineCount < (Spline->GetNumberOfSplinePoints() - 1); SplineCount++)
 	{
@@ -132,15 +155,15 @@ void ASplineActor::GenerateStaticMesh()
 
 		SplineMeshComponent->SetMobility(EComponentMobility::Movable);
 		SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-		SplineMeshComponent->RegisterComponentWithWorld(GetWorld());
-		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepRelativeTransform);
+		SplineMeshComponent->RegisterComponentWithWorld(World);
+		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepWorldTransform);
 
-		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
+		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
 		// StartPoint.Y = StartPoint.Y - 200; // TODO: Make minus half of static mesh
-		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::Local);
-		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
+		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
+		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::World);
 		// EndPoint.Y = EndPoint.Y - 200; // TODO: Make minus half of static mesh
-		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::Local);
+		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::World);
 
 		SplineMeshComponent->SetStartAndEnd(StartPoint, StartTangent, EndPoint, EndTangent, true);
 		SplineMeshComponent->SetForwardAxis(ForwardAxis);
@@ -150,7 +173,7 @@ void ASplineActor::GenerateStaticMesh()
 		// TODO: make double roll
 		// SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
 		// SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
-		
+
 		SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 }
@@ -162,4 +185,9 @@ float ASplineActor::GetRandomForm()
 	// 	return PreSetRandomForm;
 	// }
 	return FMath::RandRange(0.0f, 1.0f);
+}
+
+FVector ASplineActor::GetFinish()
+{
+	return Spline->GetLocationAtSplinePoint(Spline->GetSplineLength() - 1, ESplineCoordinateSpace::World);
 }

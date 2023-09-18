@@ -3,12 +3,12 @@
 #include "AirRaceGameMode.h"
 #include "AirRaceCharacter.h"
 #include "UObject/ConstructorHelpers.h"
-
+#include "AirRaceGameState.h"
 AAirRaceGameMode::AAirRaceGameMode()
 	: Super()
 {
 	// set default pawn class to our Blueprinted character
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/FirstPerson/Blueprints/BP_FirstPersonCharacter"));
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
-
+	GameStateClass = AAirRaceGameState::StaticClass();
 }

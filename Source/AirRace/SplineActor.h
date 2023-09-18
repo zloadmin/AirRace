@@ -89,4 +89,5 @@ public:
 	void ClimbSplinePoints();
 	void GenerateStaticMesh();
 	float GetRandomForm();
+	FVector GetFinish();
 };
