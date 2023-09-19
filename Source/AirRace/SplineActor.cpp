@@ -3,6 +3,7 @@
 
 #include "SplineActor.h"
 
+#include "AirRaceCharacter.h"
 #include "AirRaceGameState.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/StaticMesh.h"
@@ -26,8 +27,10 @@ ASplineActor::ASplineActor()
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
 	BoxComponent->SetBoxExtent(FVector(10, 300, 300), true);
 	BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
+	// BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
+	BoxComponent->SetRelativeLocation(FVector(10, 0, 0));
 	BoxComponent->SetGenerateOverlapEvents(true);
+	BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
 
 	RandomForm = GetRandomForm();
@@ -57,6 +60,11 @@ void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AAct
                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                        const FHitResult& SweepResult)
 {
+	if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+		return;
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
@@ -64,6 +72,7 @@ void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AAct
 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
 		AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
 		AirRaceGameState->GenerateNextRoad();
+
 		// AirRaceGameState-
 	}
 }
@@ -135,13 +144,13 @@ void ASplineActor::ClimbSplinePoints()
 void ASplineActor::GenerateStaticMesh()
 {
 	UWorld* const World = GetWorld();
-	
-	if(World == nullptr)
+
+	if (World == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("WORD NOT EXISTS")));
 		return;
 	}
-	if(!Spline->GetNumberOfSplinePoints())
+	if (!Spline->GetNumberOfSplinePoints())
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPLINE NOT EXISTS")));
 		return;

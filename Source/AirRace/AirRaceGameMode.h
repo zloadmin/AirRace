@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SplineActor.h"
+#include "StraightRoadActor.h"
 #include "GameFramework/GameModeBase.h"
 #include "AirRaceGameMode.generated.h"
 
@@ -13,7 +15,6 @@ class AAirRaceGameMode : public AGameModeBase
 
 public:
 	AAirRaceGameMode();
+
+
 };
-
-
-

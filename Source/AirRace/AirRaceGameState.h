@@ -29,6 +29,8 @@ public:
 private:
 	FVector GetRoadFinish();
 	void SetRoadFinish(ASplineActor* Actor);
-	
+	TArray<UClass *> Actors;
+	void SetActors();
+	UClass * GetRandomActor();
 	
 };
