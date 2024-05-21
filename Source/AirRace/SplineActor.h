@@ -90,4 +90,5 @@ public:
 	void GenerateStaticMesh();
 	float GetRandomForm();
 	FVector GetFinish();
+	FRotator GetRotation();
 };

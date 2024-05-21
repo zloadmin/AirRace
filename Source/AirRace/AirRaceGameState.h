@@ -25,10 +25,14 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Road")
 	FVector RoadFinish = FVector(0, 0, 0);
 	UPROPERTY(VisibleAnywhere, Category = "Road")
+	FRotator RoadRotation = FRotator(0, 0, 0);
+	UPROPERTY(VisibleAnywhere, Category = "Road")
 	TArray<ASplineActor *> Roads;
 private:
 	FVector GetRoadFinish();
+	FRotator GetRoadRotation();
 	void SetRoadFinish(ASplineActor* Actor);
+	void SetRoadRotation(ASplineActor* Actor);
 	TArray<UClass *> Actors;
 	void SetActors();
 	UClass * GetRandomActor();

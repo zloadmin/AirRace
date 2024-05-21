@@ -10,10 +10,14 @@
 
 AAirRaceGameState::AAirRaceGameState()
 {
-	SetActors();
-	GenerateNextRoad();
-	GenerateNextRoad();
-	GenerateNextRoad();
+	// SetActors();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
 	// GenerateNextRoad();
 	// GenerateNextRoad();
 
@@ -41,10 +45,11 @@ void AAirRaceGameState::GenerateNextRoad()
 		ASplineActor* SplineActor = World->SpawnActor<ASplineActor>(
 			GetRandomActor(),
 			GetRoadFinish(),
-			FRotator(0, 0, 0)
+			GetRoadRotation()
 		);
 		// Roads.Add(ResultPawn);
 		SetRoadFinish(SplineActor);
+		SetRoadRotation(SplineActor);
 	}
 }
 
@@ -59,16 +64,26 @@ FVector AAirRaceGameState::GetRoadFinish()
 	return RoadFinish;
 }
 
+FRotator AAirRaceGameState::GetRoadRotation()
+{
+	return RoadRotation;
+}
+
 void AAirRaceGameState::SetRoadFinish(ASplineActor* Actor)
 {
 	RoadFinish = Actor->GetFinish();
 }
 
+void AAirRaceGameState::SetRoadRotation(ASplineActor* Actor)
+{
+	RoadRotation = Actor->GetRotation();
+	// RoadRotation = FRotator(Actor->GetRotation().Pitch, Actor->GetRotation().Yaw, Actor->GetRotation().Roll - 90.f);
+}
+
 void AAirRaceGameState::SetActors()
 {
-	Actors.Add(AStraightRoadActor::StaticClass());
-	Actors.Add(AClimbRoadActor::StaticClass());
-	// Actors.Add(ALongTurnRoadActor::StaticClass());
+	// Actors.Add(AStraightRoadActor::StaticClass());
+	Actors.Add(ALongTurnRoadActor::StaticClass());
 }
 
 UClass* AAirRaceGameState::GetRandomActor()

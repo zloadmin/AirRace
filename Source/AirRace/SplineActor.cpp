@@ -27,6 +27,7 @@ ASplineActor::ASplineActor()
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
 	BoxComponent->SetBoxExtent(FVector(10, 300, 300), true);
 	BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	// BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
 	BoxComponent->SetRelativeLocation(FVector(10, 0, 0));
 	BoxComponent->SetGenerateOverlapEvents(true);
@@ -60,21 +61,21 @@ void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AAct
                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                        const FHitResult& SweepResult)
 {
-	if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
-		return;
-	}
-	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
-	UWorld* const World = GetWorld();
-	if (World != nullptr)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
-		AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
-		AirRaceGameState->GenerateNextRoad();
-
-		// AirRaceGameState-
-	}
+	// if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+	// 	return;
+	// }
+	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
+	// UWorld* const World = GetWorld();
+	// if (World != nullptr)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
+	// 	AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
+	// 	AirRaceGameState->GenerateNextRoad();
+	//
+	// 	// AirRaceGameState-
+	// }
 }
 
 void ASplineActor::OnConstruction(const FTransform& Transform)
@@ -100,29 +101,28 @@ void ASplineActor::MoveSplinePointsToCycle()
 {
 	if (!Radius) return;
 
-	const FVector CenterOfRadius(0 - Radius, 0, 0);
-	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
+	const FVector CenterOfRadius(0, 0 - Radius, 0);
+	// UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 
 	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
 	{
 		const float Degree = SplineCount * DegreeStep;
 
 		// x=x0+r⋅cos δ
-		UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius,
-		       UKismetMathLibrary::Cos(Degree * PI / 180.0));
+		// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / 180.0));
 		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / 180.0);
 		// y=y0+r⋅sin δ
-		UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius,
-		       UKismetMathLibrary::Sin(Degree*PI/180));
+		// UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/180));
 		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / 180);
 
-		UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
-		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);
+		// UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
+		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::Local, true);
 	}
 }
 
 void ASplineActor::ClimbSplinePoints()
 {
+	return; // TODO: to back 
 	if (!ClimbAngle) return;
 	double Angle = 0;
 	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
@@ -134,9 +134,9 @@ void ASplineActor::ClimbSplinePoints()
 			{
 				Angle += ClimbAngle;
 			}
-			FVector CurrentPoint = Spline->GetLocationAtSplineInputKey(SplineCount, ESplineCoordinateSpace::Local);
+			FVector CurrentPoint = Spline->GetLocationAtSplineInputKey(SplineCount, ESplineCoordinateSpace::World);
 			FVector CurrentPointWithClimb = FVector(CurrentPoint.X, CurrentPoint.Y, CurrentPoint.Z + Angle);
-			Spline->SetLocationAtSplinePoint(SplineCount, CurrentPointWithClimb, ESplineCoordinateSpace::Local, true);
+			Spline->SetLocationAtSplinePoint(SplineCount, CurrentPointWithClimb, ESplineCoordinateSpace::World, true);
 		}
 	}
 }
@@ -199,4 +199,9 @@ float ASplineActor::GetRandomForm()
 FVector ASplineActor::GetFinish()
 {
 	return Spline->GetLocationAtSplinePoint(Spline->GetSplineLength() - 1, ESplineCoordinateSpace::World);
+}
+
+FRotator ASplineActor::GetRotation()
+{
+	return Spline->GetRotationAtSplinePoint(Spline->GetSplineLength() - 1, ESplineCoordinateSpace::World);
 }
