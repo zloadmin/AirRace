@@ -5,6 +5,7 @@
 
 #include "AirRaceCharacter.h"
 #include "AirRaceGameState.h"
+#include "BaseSportsCarPawn.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
@@ -62,7 +63,7 @@ void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AAct
                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                        const FHitResult& SweepResult)
 {
-	if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
+	if(!OtherActor->IsA(ABaseSportsCarPawn::StaticClass()))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
 		return;

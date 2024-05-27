@@ -92,7 +92,7 @@ void AAirRaceGameState::SetActors()
 {
 	// Actors.Add(AStraightRoadActor::StaticClass());
 	Actors.Add(AStraightRoadActor::StaticClass());
-	// Actors.Add(ALongTurnRoadActor::StaticClass());
+	Actors.Add(ALongTurnRoadActor::StaticClass());
 }
 
 UClass* AAirRaceGameState::GetRandomActor()
