@@ -17,15 +17,16 @@ ASplineActor::ASplineActor()
 	{
 		SetRootComponent(Spline);
 	}
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(
-		TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
+	// static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane.Shape_Plane'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Script/Engine.StaticMesh'/Game/StarterContent/Shapes/Shape_Plane2.Shape_Plane2'"));
+	
 	if (MeshAsset.Object)
 	{
 		StaticMesh = MeshAsset.Object;
 	}
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
-	BoxComponent->SetBoxExtent(FVector(10, 300, 300), true);
+	BoxComponent->SetBoxExtent(FVector(10, 1000, 1000), true);
 	BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
@@ -206,9 +207,8 @@ FRotator ASplineActor::GetRotation()
 
 void ASplineActor::LogSplinePointsLocations()
 {
-	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
-		FVector Location = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
-		UE_LOG(LogTemp, Warning, TEXT("Spline %d location: %s"), SplineCount, *Location.ToString());
-		
-	}
+	// for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
+	// 	FVector Location = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
+	// 	UE_LOG(LogTemp, Warning, TEXT("Spline %d location: %s"), SplineCount, *Location.ToString());
+	// }
 }

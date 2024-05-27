@@ -59,6 +59,10 @@ void AAirRaceGameState::BeginPlay()
 	Super::BeginPlay();
 	SetActors();
 	GenerateNextRoad();
+	GenerateNextRoad();
+	GenerateNextRoad();
+	// GenerateNextRoad();
+	// GenerateNextRoad();
 	// GenerateNextRoad();
 }
 
@@ -87,7 +91,8 @@ void AAirRaceGameState::SetRoadRotation(ASplineActor* Actor)
 void AAirRaceGameState::SetActors()
 {
 	// Actors.Add(AStraightRoadActor::StaticClass());
-	Actors.Add(ALongTurnRoadActor::StaticClass());
+	Actors.Add(AStraightRoadActor::StaticClass());
+	// Actors.Add(ALongTurnRoadActor::StaticClass());
 }
 
 UClass* AAirRaceGameState::GetRandomActor()

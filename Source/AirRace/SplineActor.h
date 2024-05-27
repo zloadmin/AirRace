@@ -50,7 +50,7 @@ public:
 	int SplinePoints = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
-	int DistanceBetweenPoints = 100;
+	int DistanceBetweenPoints = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 0, ClampMax = 10000))
 	int ClimbAngle = 0;
