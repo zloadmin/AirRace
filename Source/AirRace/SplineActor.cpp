@@ -61,21 +61,19 @@ void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AAct
                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
                                        const FHitResult& SweepResult)
 {
-	// if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
-	// {
-	// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
-	// 	return;
-	// }
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
-	// UWorld* const World = GetWorld();
-	// if (World != nullptr)
-	// {
-	// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
-	// 	AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
-	// 	AirRaceGameState->GenerateNextRoad();
-	//
-	// 	// AirRaceGameState-
-	// }
+	if(!OtherActor->IsA(AAirRaceCharacter::StaticClass()))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+		return;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
+	UWorld* const World = GetWorld();
+	if (World != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
+		AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
+		AirRaceGameState->GenerateNextRoad();
+	}
 }
 
 void ASplineActor::OnConstruction(const FTransform& Transform)
@@ -100,23 +98,23 @@ void ASplineActor::GenerateSplinePoints()
 void ASplineActor::MoveSplinePointsToCycle()
 {
 	if (!Radius) return;
-
-	const FVector CenterOfRadius(0, 0 - Radius, 0);
+ 
+	const FVector CenterOfRadius(0, 0, 0);
 	// UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 
 	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
 	{
-		const float Degree = SplineCount * DegreeStep;
-
+		const float Degree = SplineCount * DegreeStep - 90.0f;
+		float Angle = 180.0f;
 		// x=x0+r⋅cos δ
-		// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / 180.0));
-		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / 180.0);
+		UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
+		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / Angle);
 		// y=y0+r⋅sin δ
-		// UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/180));
-		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / 180);
+		UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/Angle));
+		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / Angle);
 
 		// UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
-		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y, 0), ESplineCoordinateSpace::Local, true);
+		Spline->SetLocationAtSplinePoint(SplineCount, FVector(X, Y + Radius, 0), ESplineCoordinateSpace::Local, true);
 	}
 }
 
@@ -204,4 +202,13 @@ FVector ASplineActor::GetFinish()
 FRotator ASplineActor::GetRotation()
 {
 	return Spline->GetRotationAtSplinePoint(Spline->GetSplineLength() - 1, ESplineCoordinateSpace::World);
+}
+
+void ASplineActor::LogSplinePointsLocations()
+{
+	for (int SplineCount = 0; SplineCount < Spline->GetNumberOfSplinePoints(); SplineCount++)
+		FVector Location = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
+		UE_LOG(LogTemp, Warning, TEXT("Spline %d location: %s"), SplineCount, *Location.ToString());
+		
+	}
 }

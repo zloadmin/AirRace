@@ -50,13 +50,16 @@ void AAirRaceGameState::GenerateNextRoad()
 		// Roads.Add(ResultPawn);
 		SetRoadFinish(SplineActor);
 		SetRoadRotation(SplineActor);
+		// SplineActor->LogSplinePointsLocations();
 	}
 }
 
 void AAirRaceGameState::BeginPlay()
 {
 	Super::BeginPlay();
+	SetActors();
 	GenerateNextRoad();
+	// GenerateNextRoad();
 }
 
 FVector AAirRaceGameState::GetRoadFinish()
@@ -72,6 +75,7 @@ FRotator AAirRaceGameState::GetRoadRotation()
 void AAirRaceGameState::SetRoadFinish(ASplineActor* Actor)
 {
 	RoadFinish = Actor->GetFinish();
+	UE_LOG(LogTemp, Warning, TEXT("Set road finish %s"), *Actor->GetFinish().ToString());
 }
 
 void AAirRaceGameState::SetRoadRotation(ASplineActor* Actor)

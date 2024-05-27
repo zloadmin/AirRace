@@ -91,4 +91,5 @@ public:
 	float GetRandomForm();
 	FVector GetFinish();
 	FRotator GetRotation();
+	void LogSplinePointsLocations();
 };
