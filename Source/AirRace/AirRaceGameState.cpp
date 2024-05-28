@@ -61,6 +61,7 @@ void AAirRaceGameState::BeginPlay()
 	GenerateNextRoad();
 	GenerateNextRoad();
 	GenerateNextRoad();
+	GEngine->Exec(GetWorld(), TEXT("stat fps"));
 	// GenerateNextRoad();
 	// GenerateNextRoad();
 	// GenerateNextRoad();
@@ -92,7 +93,7 @@ void AAirRaceGameState::SetActors()
 {
 	// Actors.Add(AStraightRoadActor::StaticClass());
 	Actors.Add(AStraightRoadActor::StaticClass());
-	Actors.Add(ALongTurnRoadActor::StaticClass());
+	// Actors.Add(ALongTurnRoadActor::StaticClass());
 }
 
 UClass* AAirRaceGameState::GetRandomActor()

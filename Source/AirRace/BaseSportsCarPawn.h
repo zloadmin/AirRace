@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UChaosWheeledVehicleMovementComponent;
+class UAudioComponent;
 
 /**
  * 
@@ -19,6 +20,8 @@ class AIRRACE_API ABaseSportsCarPawn : public AWheeledVehiclePawn
 	GENERATED_BODY()
 	
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float Delta) override;
+	virtual void BeginPlay() override;
 public:
     ABaseSportsCarPawn();
 public:
@@ -30,7 +33,12 @@ public:
 
      UPROPERTY(Category = Vehicle, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	 UChaosWheeledVehicleMovementComponent* WheeledVehicleMovementComponent;
+	/** Audio component for the engine sound */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* EngineSoundComponent;
+	
 public:
+	FORCEINLINE UChaosWheeledVehicleMovementComponent* GetWheeledVehicleMovementComponent();
 	/** Handle pressing forwards */
 	void MoveForward(float Val);
 	/** Handle pressing right */
@@ -39,4 +47,6 @@ public:
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
 	void OnHandbrakeReleased();
+
+	static const FName EngineAudioRPM;
 };

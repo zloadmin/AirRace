@@ -6,7 +6,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
+const FName ABaseSportsCarPawn::EngineAudioRPM("RPM");
 
 void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -18,6 +21,19 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseSportsCarPawn::MoveRight);
 	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ABaseSportsCarPawn::OnHandbrakePressed);
 	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ABaseSportsCarPawn::OnHandbrakeReleased);
+}
+
+void ABaseSportsCarPawn::Tick(float Delta)
+{
+	Super::Tick(Delta);
+	float RPMToAudioScale = 2500.0f / GetWheeledVehicleMovementComponent()->GetEngineMaxRotationSpeed();
+	EngineSoundComponent->SetFloatParameter(EngineAudioRPM, GetWheeledVehicleMovementComponent()->GetEngineRotationSpeed()*RPMToAudioScale);
+}
+
+void ABaseSportsCarPawn::BeginPlay()
+{
+	Super::BeginPlay();
+	EngineSoundComponent->Play();
 }
 
 ABaseSportsCarPawn::ABaseSportsCarPawn()
@@ -54,8 +70,14 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	static ConstructorHelpers::FObjectFinder<UBlueprint> WheelsRear(
 		TEXT("/Script/Engine.Blueprint'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_WheelsRear.SportsCar_WheelsRear'"));
 	// // Setup the wheels ???
+
 	
+	// Wheel setup
+	Vehicle->bSuspensionEnabled = true;
+	Vehicle->bWheelFrictionEnabled = true;
+	Vehicle->bLegacyWheelFrictionPosition = true;
 	
+	// Wheel setups
 	if(WheelsFront.Succeeded() && WheelsRear.Succeeded())
 	{
 		FChaosWheelSetup WheelFlConfig;
@@ -82,42 +104,46 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 		WheelBRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
 		Vehicle->WheelSetups.Add(WheelBRConfig);
 	}
+	// Mechanical Setup
+	Vehicle->bMechanicalSimEnabled = true;
 	
-	// FChaosWheelSetup WheelFlConfig;
-	// WheelFlConfig.BoneName = FName("Phys_Wheel_FL");
-	// WheelFlConfig.AdditionalOffset = FVector(0.f, 0.0f, 0.f);
-	// Vehicle->WheelSetups.Add(WheelFlConfig);
-	
-	
+	// Engine Setup
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> TorqueCurve(
+		TEXT("/Script/Engine.CurveFloat'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_TorqueCurve.SportsCar_TorqueCurve'"));
+	if(TorqueCurve.Succeeded())
+	{
+		Vehicle->EngineSetup.TorqueCurve.ExternalCurve = TorqueCurve.Object;
+	}
+	Vehicle->EngineSetup.MaxTorque = 750.0f;
+	Vehicle->EngineSetup.MaxRPM = 7000.0f;
+	Vehicle->EngineSetup.EngineIdleRPM = 900.0f;
+	Vehicle->EngineSetup.EngineBrakeEffect = 0.2f;
+	Vehicle->EngineSetup.EngineRevUpMOI = 5.0f;
+	Vehicle->EngineSetup.EngineRevDownRate = 600.0f;
 
-	
-	
-	
-	
-	// Vehicle->SetWheelClass(0, UChaosVehicleWheel::StaticClass());
-	// Vehicle->SetWheelClass(1, UChaosVehicleWheel::StaticClass());
-	// Vehicle->SetWheelClass(2, UChaosVehicleWheel::StaticClass());
-	// Vehicle->SetWheelClass(3, UChaosVehicleWheel::StaticClass());
+	// Differential Setup
+	Vehicle->DifferentialSetup.DifferentialType = EVehicleDifferential::RearWheelDrive;
+	Vehicle->DifferentialSetup.FrontRearSplit = 0.5f;
 
-	Vehicle->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
-	Vehicle->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.0f, 400.0f);
-	Vehicle->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(1890.0f, 500.0f);
-	Vehicle->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(5730.0f, 400.0f);
-
-	// Adjust the steering ???
-
-	// Transmission	
-	// We want 4wd
-	Vehicle->DifferentialSetup.DifferentialType = EVehicleDifferential::AllWheelDrive;
-	// Drive the front wheels a little more than the rear
-	Vehicle->DifferentialSetup.FrontRearSplit = 0.65;
-
+	// Transmission Setup
 	Vehicle->TransmissionSetup.bUseAutomaticGears = true;
-	Vehicle->TransmissionSetup.GearChangeTime = 0.15f;
-	// Vehicle->TransmissionSetup.GearAutoBoxLatency = 1.0f; ???
-	UPrimitiveComponent* UpdatedPrimitive = Cast<UPrimitiveComponent>(Vehicle->UpdatedComponent);
-
+	Vehicle->TransmissionSetup.bUseAutoReverse = true;
+	Vehicle->TransmissionSetup.FinalRatio = 2.81f;
+	Vehicle->TransmissionSetup.ForwardGearRatios.Empty();
+	Vehicle->TransmissionSetup.ForwardGearRatios.Add(4.25f);
+	Vehicle->TransmissionSetup.ForwardGearRatios.Add(2.52f);
+	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.66f);
+	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.22f);
+	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.0f);
+	Vehicle->TransmissionSetup.ReverseGearRatios.Empty();
+	Vehicle->TransmissionSetup.ReverseGearRatios.Add(4.04f);
+	Vehicle->TransmissionSetup.ChangeUpRPM = 6000.0f;
+	Vehicle->TransmissionSetup.ChangeDownRPM = 2000.0f;
+	Vehicle->TransmissionSetup.GearChangeTime = 0.2f;
+	Vehicle->TransmissionSetup.TransmissionEfficiency = 0.9f;
 	
+	// Vehicle Setup
+	Vehicle->ChassisHeight = 144.0f;	
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 75.0f));
@@ -140,8 +166,19 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
 	Camera->FieldOfView = 90.f;
 
-	// GetVehicleMovement()->Set = CreateDefaultSubobject<UChaosWheeledVehicleMovementComponent>(TEXT("ChaosWheeledVehicleMovementComponent"));
 	
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(TEXT("/Script/Engine.SoundCue'/Game/Vehicles/SportsCar/Sound/Engine_Loop_Cue.Engine_Loop_Cue'"));
+	EngineSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("EngineSound"));
+	EngineSoundComponent->SetSound(SoundCue.Object);
+	EngineSoundComponent->SetupAttachment(GetMesh());
+	
+	
+	
+}
+
+UChaosWheeledVehicleMovementComponent* ABaseSportsCarPawn::GetWheeledVehicleMovementComponent()
+{
+	return Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 }
 
 void ABaseSportsCarPawn::MoveForward(float Val)
