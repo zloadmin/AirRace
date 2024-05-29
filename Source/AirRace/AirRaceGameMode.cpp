@@ -4,6 +4,7 @@
 #include "AirRaceCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include "AirRaceGameState.h"
+#include "AirRaceHUD.h"
 #include "BaseSportsCarPawn.h"
 
 AAirRaceGameMode::AAirRaceGameMode()
@@ -14,4 +15,5 @@ AAirRaceGameMode::AAirRaceGameMode()
 	// DefaultPawnClass = PlayerPawnClassFinder.Class;
 	DefaultPawnClass = ABaseSportsCarPawn::StaticClass();
 	GameStateClass = AAirRaceGameState::StaticClass();
+	HUDClass = AAirRaceHUD::StaticClass();
 }

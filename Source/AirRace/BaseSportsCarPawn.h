@@ -10,7 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UChaosWheeledVehicleMovementComponent;
 class UAudioComponent;
-
+class UTextRenderComponent;
 /**
  * 
  */
@@ -47,6 +47,13 @@ public:
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
 	void OnHandbrakeReleased();
+	/** Setup the strings used on the hud */
+	void SetupHUD();
+	void UpdateHUDStrings();
 
 	static const FName EngineAudioRPM;
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+	FText SpeedDisplayString;
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTextRenderComponent* InCarSpeed;
 };

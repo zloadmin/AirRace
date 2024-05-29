@@ -7,6 +7,7 @@
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Sound/SoundCue.h"
 
 const FName ABaseSportsCarPawn::EngineAudioRPM("RPM");
@@ -28,6 +29,9 @@ void ABaseSportsCarPawn::Tick(float Delta)
 	Super::Tick(Delta);
 	float RPMToAudioScale = 2500.0f / GetWheeledVehicleMovementComponent()->GetEngineMaxRotationSpeed();
 	EngineSoundComponent->SetFloatParameter(EngineAudioRPM, GetWheeledVehicleMovementComponent()->GetEngineRotationSpeed()*RPMToAudioScale);
+	UpdateHUDStrings();
+	SetupHUD();
+	
 }
 
 void ABaseSportsCarPawn::BeginPlay()
@@ -60,7 +64,7 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	// static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> NonSlipperyMat(TEXT("/Game/VehicleAdv/PhysicsMaterials/NonSlippery.NonSlippery"));
 	// NonSlipperyMaterial = NonSlipperyMat.Object;
 
-	UChaosWheeledVehicleMovementComponent* Vehicle = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
+	WheeledVehicleMovementComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Wheels %d"), Vehicle->Wheels.Num()));
 	// Wheels/Tyres
 	
@@ -73,9 +77,9 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 
 	
 	// Wheel setup
-	Vehicle->bSuspensionEnabled = true;
-	Vehicle->bWheelFrictionEnabled = true;
-	Vehicle->bLegacyWheelFrictionPosition = true;
+	WheeledVehicleMovementComponent->bSuspensionEnabled = true;
+	WheeledVehicleMovementComponent->bWheelFrictionEnabled = true;
+	WheeledVehicleMovementComponent->bLegacyWheelFrictionPosition = true;
 	
 	// Wheel setups
 	if(WheelsFront.Succeeded() && WheelsRear.Succeeded())
@@ -84,66 +88,66 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 		WheelFlConfig.BoneName = FName("Phys_Wheel_FL");
 		WheelFlConfig.WheelClass = WheelsFront.Object->GeneratedClass;
 		WheelFlConfig.AdditionalOffset = FVector(0.f, 0.0f, 0.f);
-		Vehicle->WheelSetups.Add(WheelFlConfig);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFlConfig);
 		
 		FChaosWheelSetup WheelFRConfig;
 		WheelFRConfig.BoneName = FName("Phys_Wheel_FR");
 		WheelFRConfig.WheelClass = WheelsFront.Object->GeneratedClass;
 		WheelFRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		Vehicle->WheelSetups.Add(WheelFRConfig);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFRConfig);
 		
 		FChaosWheelSetup WheelBLConfig;
 		WheelBLConfig.BoneName = FName("Phys_Wheel_BL");
 		WheelBLConfig.WheelClass = WheelsRear.Object->GeneratedClass;
 		WheelBLConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		Vehicle->WheelSetups.Add(WheelBLConfig);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBLConfig);
 
 		FChaosWheelSetup WheelBRConfig;
 		WheelBRConfig.BoneName = FName("Phys_Wheel_BR");
 		WheelBRConfig.WheelClass = WheelsRear.Object->GeneratedClass;
 		WheelBRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		Vehicle->WheelSetups.Add(WheelBRConfig);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBRConfig);
 	}
 	// Mechanical Setup
-	Vehicle->bMechanicalSimEnabled = true;
+	WheeledVehicleMovementComponent->bMechanicalSimEnabled = true;
 	
 	// Engine Setup
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> TorqueCurve(
 		TEXT("/Script/Engine.CurveFloat'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_TorqueCurve.SportsCar_TorqueCurve'"));
 	if(TorqueCurve.Succeeded())
 	{
-		Vehicle->EngineSetup.TorqueCurve.ExternalCurve = TorqueCurve.Object;
+		WheeledVehicleMovementComponent->EngineSetup.TorqueCurve.ExternalCurve = TorqueCurve.Object;
 	}
-	Vehicle->EngineSetup.MaxTorque = 750.0f;
-	Vehicle->EngineSetup.MaxRPM = 7000.0f;
-	Vehicle->EngineSetup.EngineIdleRPM = 900.0f;
-	Vehicle->EngineSetup.EngineBrakeEffect = 0.2f;
-	Vehicle->EngineSetup.EngineRevUpMOI = 5.0f;
-	Vehicle->EngineSetup.EngineRevDownRate = 600.0f;
+	WheeledVehicleMovementComponent->EngineSetup.MaxTorque = 750.0f;
+	WheeledVehicleMovementComponent->EngineSetup.MaxRPM = 7000.0f;
+	WheeledVehicleMovementComponent->EngineSetup.EngineIdleRPM = 900.0f;
+	WheeledVehicleMovementComponent->EngineSetup.EngineBrakeEffect = 0.2f;
+	WheeledVehicleMovementComponent->EngineSetup.EngineRevUpMOI = 5.0f;
+	WheeledVehicleMovementComponent->EngineSetup.EngineRevDownRate = 600.0f;
 
 	// Differential Setup
-	Vehicle->DifferentialSetup.DifferentialType = EVehicleDifferential::RearWheelDrive;
-	Vehicle->DifferentialSetup.FrontRearSplit = 0.5f;
+	WheeledVehicleMovementComponent->DifferentialSetup.DifferentialType = EVehicleDifferential::RearWheelDrive;
+	WheeledVehicleMovementComponent->DifferentialSetup.FrontRearSplit = 0.5f;
 
 	// Transmission Setup
-	Vehicle->TransmissionSetup.bUseAutomaticGears = true;
-	Vehicle->TransmissionSetup.bUseAutoReverse = true;
-	Vehicle->TransmissionSetup.FinalRatio = 2.81f;
-	Vehicle->TransmissionSetup.ForwardGearRatios.Empty();
-	Vehicle->TransmissionSetup.ForwardGearRatios.Add(4.25f);
-	Vehicle->TransmissionSetup.ForwardGearRatios.Add(2.52f);
-	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.66f);
-	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.22f);
-	Vehicle->TransmissionSetup.ForwardGearRatios.Add(1.0f);
-	Vehicle->TransmissionSetup.ReverseGearRatios.Empty();
-	Vehicle->TransmissionSetup.ReverseGearRatios.Add(4.04f);
-	Vehicle->TransmissionSetup.ChangeUpRPM = 6000.0f;
-	Vehicle->TransmissionSetup.ChangeDownRPM = 2000.0f;
-	Vehicle->TransmissionSetup.GearChangeTime = 0.2f;
-	Vehicle->TransmissionSetup.TransmissionEfficiency = 0.9f;
+	WheeledVehicleMovementComponent->TransmissionSetup.bUseAutomaticGears = true;
+	WheeledVehicleMovementComponent->TransmissionSetup.bUseAutoReverse = true;
+	WheeledVehicleMovementComponent->TransmissionSetup.FinalRatio = 2.81f;
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Empty();
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(4.25f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(2.52f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.66f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.22f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.0f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Empty();
+	WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Add(4.04f);
+	WheeledVehicleMovementComponent->TransmissionSetup.ChangeUpRPM = 6000.0f;
+	WheeledVehicleMovementComponent->TransmissionSetup.ChangeDownRPM = 2000.0f;
+	WheeledVehicleMovementComponent->TransmissionSetup.GearChangeTime = 0.2f;
+	WheeledVehicleMovementComponent->TransmissionSetup.TransmissionEfficiency = 0.9f;
 	
 	// Vehicle Setup
-	Vehicle->ChassisHeight = 144.0f;	
+	WheeledVehicleMovementComponent->ChassisHeight = 144.0f;	
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 75.0f));
@@ -178,7 +182,7 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 
 UChaosWheeledVehicleMovementComponent* ABaseSportsCarPawn::GetWheeledVehicleMovementComponent()
 {
-	return Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
+	return WheeledVehicleMovementComponent;
 }
 
 void ABaseSportsCarPawn::MoveForward(float Val)
@@ -202,3 +206,24 @@ void ABaseSportsCarPawn::OnHandbrakeReleased()
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ABaseSportsCarPawn::OnHandbrakeReleased")));
 	GetVehicleMovement()->SetHandbrakeInput(false);
 }
+
+void ABaseSportsCarPawn::SetupHUD()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if ((PlayerController != nullptr) && (InCarSpeed != nullptr))
+	{
+		InCarSpeed->SetText(SpeedDisplayString);	
+	}
+	
+}
+#define LOCTEXT_NAMESPACE "SportsCarPawn"
+
+void ABaseSportsCarPawn::UpdateHUDStrings()
+{
+	float KPH = FMath::Abs(GetWheeledVehicleMovementComponent()->GetForwardSpeed()) * 0.036f;
+	int32 KPH_int = FMath::FloorToInt(KPH);
+	// Using FText because this is display text that should be localizable
+	SpeedDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} km/h"), FText::AsNumber(KPH_int));
+
+}
+#undef LOCTEXT_NAMESPACE
