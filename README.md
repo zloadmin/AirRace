@@ -2,6 +2,7 @@
 # Fixes
 * Angle of start of spline
 * check straight spline, first mash small
+* camera fixes. 
 
 
 # TODO
@@ -9,3 +10,4 @@
 * make game over when car out road
 * make spline spawn - check spline points before spanw
 * crate nitro
+* delete not usable asserts and check size of app

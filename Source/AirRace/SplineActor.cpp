@@ -83,16 +83,22 @@ void ASplineActor::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	if (!StaticMesh) return;
-	MoveSplinePointsToCycle();
-	ClimbSplinePoints();
+	// MoveSplinePointsToCycle();
+	// ClimbSplinePoints();
 	GenerateStaticMesh();
 }
 
 void ASplineActor::GenerateSplinePoints()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ASplineActor::GenerateSplinePoints"));
+	// TArray<FVector> Points;
+	Spline->ClearSplinePoints(true); // TODO: do we need it?
+	 
 	for (int i = 0; i < SplinePoints; i++)
 	{
-		Spline->AddSplineLocalPoint(FVector(i * DistanceBetweenPoints + (DistanceBetweenPoints * 2), 0, 0));
+		FVector Point = FVector(i * DistanceBetweenPoints, 0, 0);
+		UE_LOG(LogTemp, Warning, TEXT("Spline is %d - %s"), i, *Point.ToString());
+		Spline->AddSplineLocalPoint(Point);
 	}
 }
 
@@ -143,6 +149,7 @@ void ASplineActor::ClimbSplinePoints()
 
 void ASplineActor::GenerateStaticMesh()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ASplineActor::GenerateStaticMesh. Splines %d"), Spline->GetNumberOfSplinePoints());
 	UWorld* const World = GetWorld();
 
 	if (World == nullptr)
@@ -161,22 +168,24 @@ void ASplineActor::GenerateStaticMesh()
 		USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(
 			this, USplineMeshComponent::StaticClass());
 		SplineMeshComponent->SetStaticMesh(StaticMesh);
-
 		SplineMeshComponent->SetMobility(EComponentMobility::Movable);
 		SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 		SplineMeshComponent->RegisterComponentWithWorld(World);
 		SplineMeshComponent->AttachToComponent(Spline, FAttachmentTransformRules::KeepWorldTransform);
 
 		FVector StartPoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
-		// StartPoint.Y = StartPoint.Y - 200; // TODO: Make minus half of static mesh
-		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
 		FVector EndPoint = Spline->GetLocationAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::World);
-		// EndPoint.Y = EndPoint.Y - 200; // TODO: Make minus half of static mesh
+		UE_LOG(LogTemp, Warning, TEXT("%d - Start is %s. End is %s"), SplineCount, *StartPoint.ToString(), *EndPoint.ToString());
+		
+		const FVector StartTangent = Spline->GetTangentAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
 		const FVector EndTangent = Spline->GetTangentAtSplinePoint(SplineCount + 1, ESplineCoordinateSpace::World);
 
 		SplineMeshComponent->SetStartAndEnd(StartPoint, StartTangent, EndPoint, EndTangent, true);
+		// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d  - StartPoint is %s, EndPoint is %s "), SplineCount, *StartPoint.ToString(), *EndPoint.ToString()));
+		FVector SplinePoint = Spline->GetLocationAtSplinePoint(SplineCount, ESplineCoordinateSpace::World);
+		UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint is %s"), SplineCount, *SplinePoint.ToString());
 		SplineMeshComponent->SetForwardAxis(ForwardAxis);
-
+		
 
 		// TODO: disable rolling for first and last point
 		// TODO: make double roll

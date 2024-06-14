@@ -61,6 +61,8 @@ void AAirRaceGameState::BeginPlay()
 	GenerateNextRoad();
 	GenerateNextRoad();
 	GenerateNextRoad();
+	GenerateNextRoad();
+	GenerateNextRoad();
 	GEngine->Exec(GetWorld(), TEXT("stat fps"));
 	// GenerateNextRoad();
 	// GenerateNextRoad();

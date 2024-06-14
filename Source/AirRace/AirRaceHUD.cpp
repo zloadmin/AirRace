@@ -25,6 +25,12 @@ void AAirRaceHUD::DrawHUD()
 		FCanvasTextItem SpeedTextItem(FVector2D(HUDXRatio * 805.f, HUDYRatio * 455), Vehicle->SpeedDisplayString, GEngine->GetLargeFont(), FLinearColor::Red);
 		SpeedTextItem.Scale = ScaleVec;
 		Canvas->DrawItem(SpeedTextItem);
+
+		
+		FCanvasTextItem SpeedTextItem2(FVector2D(HUDXRatio * 100.f, HUDYRatio * 100.0f), Vehicle->SpeedPerHundred, GEngine->GetLargeFont(), FLinearColor::Green);
+		SpeedTextItem2.Scale = ScaleVec;
+		Canvas->DrawItem(SpeedTextItem2);
+		
 		// Vehicle->DisplayDebug(Canvas, )
 		// float YL = 0.0f;
 		// float YPos = 0.0f;

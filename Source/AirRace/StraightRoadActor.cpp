@@ -3,9 +3,9 @@
 
 #include "StraightRoadActor.h"
 
-AStraightRoadActor::AStraightRoadActor()
+AStraightRoadActor::AStraightRoadActor() 
 {
-	SplinePoints = 10 + (20 * RandomForm);
-	// SplinePoints = 3;
+	// SplinePoints = 10 + (20 * RandomForm);
+	SplinePoints = 10;
 	GenerateSplinePoints();
 }
