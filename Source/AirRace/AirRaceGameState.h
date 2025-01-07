@@ -14,9 +14,13 @@ UCLASS()
 class AIRRACE_API AAirRaceGameState : public AGameStateBase
 {
 	GENERATED_BODY()
+
 public:
 	AAirRaceGameState();
 	void GenerateNextRoad();
+	void InitRoad();
+	void AddStraightRoad();
+	void GenerateRoad(int Points);
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,14 +31,22 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Road")
 	FRotator RoadRotation = FRotator(0, 0, 0);
 	UPROPERTY(VisibleAnywhere, Category = "Road")
-	TArray<ASplineActor *> Roads;
+	TArray<ASplineActor*> Roads;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
+	int DistanceBetweenPoints = 1000;
+
 private:
+	ASplineActor* Road; // TODO: delete
+	USplineComponent* RoadSplineComponent;
+	UStaticMesh* RoadStaticMesh;
 	FVector GetRoadFinish();
 	FRotator GetRoadRotation();
 	void SetRoadFinish(ASplineActor* Actor);
 	void SetRoadRotation(ASplineActor* Actor);
-	TArray<UClass *> Actors;
+	TArray<UClass*> Actors;
 	void SetActors();
-	UClass * GetRandomActor();
-	
+	UClass* GetRandomActor();
+
+	void GenerateRoadSplinePoints(int Points);
+	void GenerateRoadSplineStaticMesh(int Points);
 };

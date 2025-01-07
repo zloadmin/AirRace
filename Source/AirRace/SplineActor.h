@@ -47,7 +47,7 @@ public:
 	float Roll = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 10, ClampMax = 100))
-	int SplinePoints = 10;
+	int SplinePoints = 30;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
 	int DistanceBetweenPoints = 1000;
@@ -75,7 +75,7 @@ public:
 	float RandomForm;
 
 	UFUNCTION()
-	void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	// void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	// overlap end function
 	// UFUNCTION()
@@ -83,13 +83,21 @@ public:
 
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-
-	void GenerateSplinePoints();
+	// todo:
 	void MoveSplinePointsToCycle();
 	void ClimbSplinePoints();
-	void GenerateStaticMesh();
 	float GetRandomForm();
+	void LogSplinePointsLocations();
+	void Add();
+private:
+	// Generation
+	void Generate(const int StartIndex, const int FinishIndex);
+	void GenerateSplinePoints(const int StartIndex, const int FinishIndex);
+	void GenerateStaticMesh(const int StartIndex, const int FinishIndex);
+	
+	// Spline 
+	int GetSplineLastIndex();
 	FVector GetFinish();
 	FRotator GetRotation();
-	void LogSplinePointsLocations();
+	
 };
