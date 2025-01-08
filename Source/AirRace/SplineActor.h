@@ -47,7 +47,7 @@ public:
 	float Roll = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 10, ClampMax = 100))
-	int SplinePoints = 30;
+	int SplinePoints = 5;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
 	int DistanceBetweenPoints = 1000;
@@ -94,6 +94,7 @@ private:
 	void Generate(const int StartIndex, const int FinishIndex);
 	void GenerateSplinePoints(const int StartIndex, const int FinishIndex);
 	void GenerateStaticMesh(const int StartIndex, const int FinishIndex);
+	void GenerateTurn(const int StartIndex, const int FinishIndex);
 	
 	// Spline 
 	int GetSplineLastIndex();

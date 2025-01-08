@@ -93,14 +93,18 @@ void AAirRaceGameState::BeginPlay()
 	Super::BeginPlay();
 	SetActors();
 	InitRoad();
+	
+	
+	Road->Radius = 5000;
+	Road->DegreeStep = 15;
 	Road->Add();
-	Road->Add();
-	Road->Add();
-	Road->Add();
-	Road->Add();
-	Road->Add();
-	Road->Add();
-	Road->Add();
+	// Road->Add();
+	// Road->Add();
+	// Road->Add();
+	// Road->Add();
+	// Road->Add();
+	// Road->Add();
+	// Road->Add();
 	GEngine->Exec(GetWorld(), TEXT("stat fps"));
 }
 
