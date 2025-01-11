@@ -48,6 +48,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 10, ClampMax = 100))
 	int SplinePoints = 5;
+	
+	// Offset before and after spline points 
+	const int SplinePointsOffset = 2;
+	float CurrentAngle = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 100, ClampMax = 10000))
 	int DistanceBetweenPoints = 1000;
@@ -66,7 +70,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1.0f, ClampMax = 45.0f))
 	float DegreeStep = 0.0f;
-
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1, ClampMax = 100))
 	int PreSetRandomForm;
@@ -74,6 +78,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	float RandomForm;
 
+	
 	UFUNCTION()
 	// void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -95,6 +100,8 @@ private:
 	void GenerateSplinePoints(const int StartIndex, const int FinishIndex);
 	void GenerateStaticMesh(const int StartIndex, const int FinishIndex);
 	void GenerateTurn(const int StartIndex, const int FinishIndex);
+	float GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
+	void SetCurrentAngle();
 	
 	// Spline 
 	int GetSplineLastIndex();

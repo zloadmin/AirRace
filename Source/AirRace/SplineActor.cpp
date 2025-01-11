@@ -100,16 +100,27 @@ void ASplineActor::GenerateSplinePoints(const int StartIndex, const int FinishIn
 	                                 FString::Printf(
 		                                 TEXT("ASplineActor::GenerateSplinePoints Start: %d Finish: %d"), StartIndex,
 		                                 FinishIndex));
-	
-	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex; CurrentIndex++)
+
+	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex, ESplineCoordinateSpace::World);
+	int Index = 0;
+	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex + (SplinePointsOffset * 2); CurrentIndex++)
 	{
 		if (CurrentIndex + 1 > Spline->GetNumberOfSplinePoints())
+		// spline always generate with first two points 0 and 100  - don't touch it 
 		{
-			FVector Point = FVector(CurrentIndex * DistanceBetweenPoints, 0, 0);
+			constexpr float Angle = 180.0f;
+			const float Distance = Index * DistanceBetweenPoints;
+			const float X = StartPointPos.X + Distance * UKismetMathLibrary::Cos(CurrentAngle * PI / Angle);
+			const float Y = StartPointPos.Y + Distance * UKismetMathLibrary::Sin(CurrentAngle * PI / Angle);
+
+			// FVector Point = FVector(CurrentIndex * DistanceBetweenPoints, 0, 0);
+			FVector Point = FVector(X, Y, 0);
+
 			UE_LOG(LogTemp, Warning, TEXT("ASplineActor::GenerateSplinePoints is %d - %s"), CurrentIndex,
-				   *Point.ToString());
+			       *Point.ToString());
 			Spline->AddSplinePointAtIndex(Point, CurrentIndex, ESplineCoordinateSpace::World, true);
 		}
+		Index++;
 	}
 	Spline->UpdateSpline();
 }
@@ -172,9 +183,9 @@ void ASplineActor::GenerateStaticMesh(const int StartIndex, const int FinishInde
 	if (World == nullptr) return;
 
 	// const float RollStep = Roll > 0.0f ? Roll / Spline->GetNumberOfSplinePoints() : 0.0f;
-	for (int CurrentIndex = StartIndex; CurrentIndex < FinishIndex; CurrentIndex++)
+	int StartIndexWithOffset = StartIndex == 0 ? StartIndex : StartIndex - 1;
+	for (int CurrentIndex = StartIndexWithOffset; CurrentIndex < FinishIndex + (SplinePointsOffset * 2); CurrentIndex++)
 	{
-		
 		USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(
 			this, USplineMeshComponent::StaticClass());
 		SplineMeshComponent->SetStaticMesh(StaticMesh);
@@ -212,7 +223,8 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 	if (!Radius) return;
 	// TODO: make as method getCenterOfRadius
 	// 1 take startPoint
-	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex, ESplineCoordinateSpace::World);
+	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex + SplinePointsOffset,
+	                                                               ESplineCoordinateSpace::World);
 	// 2 add radius by 
 
 	const FVector CenterOfRadius = FVector(StartPointPos.X, StartPointPos.Y - Radius, StartPointPos.Z);
@@ -220,28 +232,47 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 	// const FVector CenterOfRadius(0, 0, 0);
 	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 
-	int DegreeIndex = 0;
-	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex; CurrentIndex++)
+	int Index = 0;
+	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex + (SplinePointsOffset * 2); CurrentIndex++)
 	{
-		const float Degree = 90 - DegreeIndex * DegreeStep;
+		// offset before - skip
+		if (CurrentIndex - StartIndex < SplinePointsOffset)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Turn offset before %d"), CurrentIndex);
+			continue;
+		}
+		// offset after - add points in same angle & skip
+		if (CurrentIndex - (FinishIndex + SplinePointsOffset) > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Turn offset after %d"), CurrentIndex);
+			float AngleBeforeOffset = GetAngleOfSplineIndexes(FinishIndex - 1, FinishIndex);
+			const FVector PointBefore = Spline->GetLocationAtSplinePoint(CurrentIndex - 1, ESplineCoordinateSpace::World);
+			constexpr float Angle = 180.0f;
+			const float X = PointBefore.X + DistanceBetweenPoints * UKismetMathLibrary::Cos(AngleBeforeOffset * PI / Angle);
+			const float Y = PointBefore.Y + DistanceBetweenPoints * UKismetMathLibrary::Sin(AngleBeforeOffset * PI / Angle);
+			Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);	
+			continue;
+		}
+		
+		// make a turn 
+		const float Degree = 90 - Index * DegreeStep;
 		constexpr float Angle = 180.0f; // 1° × π/180 = 0.01745rad
-		
-		
 		// x=x0+r⋅cos δ
 		// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
-		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / Angle);
+		const float X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / Angle);
 		// y=y0+r⋅sin δ
 		// UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/Angle));
-		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / Angle);
+		const float Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / Angle);
 
-		if (DegreeIndex == 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Degree %f"), Degree);
-			UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/Angle));
-			UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, Degree*PI/Angle);
-			// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
-			// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, Degree * PI / Angle);
-		}
+		// if (IndexWithoutOffset == 0)
+		// {
+		// 	UE_LOG(LogTemp, Warning, TEXT("Degree %f"), Degree);
+		// 	UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius,
+		// 	       UKismetMathLibrary::Sin(Degree*PI/Angle));
+		// 	UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, Degree*PI/Angle);
+		// 	// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
+		// 	// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, Degree * PI / Angle);
+		// }
 
 		// UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
 		Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);
@@ -252,8 +283,26 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 		// {
 		// 	Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y  + Radius, 0), ESplineCoordinateSpace::World, true);
 		// }
-		DegreeIndex++;
+		Index++;
 	}
+}
+
+float ASplineActor::GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex)
+{
+
+	const FVector FirstPoint = Spline->GetLocationAtSplinePoint(FirstIndex, ESplineCoordinateSpace::World);
+	const FVector SecondPoint = Spline->GetLocationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	const FVector Direction = SecondPoint - FirstPoint;
+	const float AngleRadians = FMath::Atan2(Direction.Y, Direction.X);
+	const float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
+
+	return FMath::Fmod(AngleDegrees + 360.f, 360.f);
+}
+
+void ASplineActor::SetCurrentAngle()
+{
+	
+	CurrentAngle = GetAngleOfSplineIndexes(GetSplineLastIndex() - 1, GetSplineLastIndex());
 }
 
 float ASplineActor::GetRandomForm()
@@ -293,7 +342,13 @@ void ASplineActor::Add()
 	// const int StartIndex = GetSplineLastIndex() + 1;
 	// const int FinishIndex = GetSplineLastIndex() + SplinePoints;
 	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ASplineActor::Add Start: %d Finish: %d"), StartIndex, FinishIndex));
-	Generate(GetSplineLastIndex() + 1, GetSplineLastIndex() + SplinePoints);
+	const int StartIndex = GetSplineLastIndex() + 1;
+	const int FinishIndex = GetSplineLastIndex() + SplinePoints;
+	Generate(StartIndex, FinishIndex);
+
+	float Angle = GetAngleOfSplineIndexes(FinishIndex - 1, FinishIndex);
+
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Added ANGLE - %f"), Angle));
 	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ADD")));
 	// int addPoints = 10;
 	// // add splines
@@ -310,6 +365,8 @@ void ASplineActor::Add()
 
 void ASplineActor::Generate(const int StartIndex, const int FinishIndex)
 {
+	if (StartIndex > 0) SetCurrentAngle();
+	
 	GenerateSplinePoints(StartIndex, FinishIndex);
 	GenerateTurn(StartIndex, FinishIndex);
 	GenerateStaticMesh(StartIndex, FinishIndex);

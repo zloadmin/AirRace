@@ -83,8 +83,6 @@ void AAirRaceGameState::InitRoad()
 
 void AAirRaceGameState::AddStraightRoad()
 {
-
-	
 }
 
 
@@ -93,12 +91,25 @@ void AAirRaceGameState::BeginPlay()
 	Super::BeginPlay();
 	SetActors();
 	InitRoad();
+
+
+	Road->Radius = 10000;
+	Road->SplinePoints = 10;
+	Road->DegreeStep = 90 / Road->SplinePoints;
+	Road->Add();
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 	
+	Road->Radius = 0;
+	Road->SplinePoints = 10;
+	Road->DegreeStep = 0;
+	Road->Add();
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 	
 	Road->Radius = 10000;
 	Road->SplinePoints = 10;
-	Road->DegreeStep = 90 / Road->SplinePoints; 
+	Road->DegreeStep = 90 / Road->SplinePoints;
 	Road->Add();
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 	// Road->Add();
 	// Road->Add();
 	// Road->Add();
