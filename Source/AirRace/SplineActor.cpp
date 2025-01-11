@@ -8,6 +8,7 @@
 #include "BaseSportsCarPawn.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/StaticMesh.h"
+#include "Logging/StructuredLog.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Sets default values
@@ -214,26 +215,44 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex, ESplineCoordinateSpace::World);
 	// 2 add radius by 
 
-	const FVector CenterOfRadius = FVector(StartPointPos.X, StartPointPos.Y + Radius, StartPointPos.Z);
+	const FVector CenterOfRadius = FVector(StartPointPos.X, StartPointPos.Y - Radius, StartPointPos.Z);
 	//Spline->GetLocationAtSplinePoint(StartIndex + 2, ESplineCoordinateSpace::World);
 	// const FVector CenterOfRadius(0, 0, 0);
 	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 
+	int DegreeIndex = 0;
 	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex; CurrentIndex++)
 	{
-		const float Degree = CurrentIndex * DegreeStep - 90.0f;
-		const float Angle = 180.0f;
+		const float Degree = 90 - DegreeIndex * DegreeStep;
+		constexpr float Angle = 180.0f; // 1° × π/180 = 0.01745rad
+		
+		
 		// x=x0+r⋅cos δ
-		UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius,
-		       UKismetMathLibrary::Cos(Degree * PI / Angle));
+		// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
 		const int X = CenterOfRadius.X + Radius * UKismetMathLibrary::Cos(Degree * PI / Angle);
 		// y=y0+r⋅sin δ
-		UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius,
-		       UKismetMathLibrary::Sin(Degree*PI/Angle));
+		// UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/Angle));
 		const int Y = CenterOfRadius.Y + Radius * UKismetMathLibrary::Sin(Degree * PI / Angle);
 
+		if (DegreeIndex == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Degree %f"), Degree);
+			UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, UKismetMathLibrary::Sin(Degree*PI/Angle));
+			UE_LOG(LogTemp, Warning, TEXT("Y is %f + %i * %f"), CenterOfRadius.Y, Radius, Degree*PI/Angle);
+			// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
+			// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, Degree * PI / Angle);
+		}
+
 		// UE_LOG(LogTemp, Warning, TEXT("Degree %f X: %i Y: %i"), Degree, X, Y);
-		Spline->SetLocationAtSplinePoint(CurrentIndex + 1, FVector(X + Radius, Y, 0), ESplineCoordinateSpace::World, true);
+		Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);
+		// if (CurrentIndex == FinishIndex)
+		// {
+		// 	Spline->SetLocationAtSplinePoint(CurrentIndex, CenterOfRadius, ESplineCoordinateSpace::World, true);
+		// } else
+		// {
+		// 	Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y  + Radius, 0), ESplineCoordinateSpace::World, true);
+		// }
+		DegreeIndex++;
 	}
 }
 
@@ -248,7 +267,7 @@ float ASplineActor::GetRandomForm()
 
 int ASplineActor::GetSplineLastIndex()
 {
-	return Spline->GetNumberOfSplinePoints() - 3;
+	return Spline->GetNumberOfSplinePoints() - 1;
 }
 
 FVector ASplineActor::GetFinish()
@@ -271,8 +290,8 @@ void ASplineActor::LogSplinePointsLocations()
 
 void ASplineActor::Add()
 {
-	const int StartIndex = GetSplineLastIndex();
-	const int FinishIndex = GetSplineLastIndex() + SplinePoints - 1;
+	// const int StartIndex = GetSplineLastIndex() + 1;
+	// const int FinishIndex = GetSplineLastIndex() + SplinePoints;
 	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ASplineActor::Add Start: %d Finish: %d"), StartIndex, FinishIndex));
 	Generate(GetSplineLastIndex() + 1, GetSplineLastIndex() + SplinePoints);
 	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ADD")));
