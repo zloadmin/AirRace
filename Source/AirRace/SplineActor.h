@@ -102,6 +102,7 @@ private:
 	void GenerateTurn(const int StartIndex, const int FinishIndex);
 	float GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
 	void SetCurrentAngle();
+	FVector GetCenterOfTurn(const int StartTurnIndex);
 	
 	// Spline 
 	int GetSplineLastIndex();
