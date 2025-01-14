@@ -93,25 +93,35 @@ void AAirRaceGameState::BeginPlay()
 	InitRoad();
 
 
-	Road->Radius = 10000;
-	Road->SplinePoints = 10;
-	Road->DegreeStep = 90 / Road->SplinePoints;
-	Road->Add();
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
-	
-	for (int i = 0; i <= 10; i++) {
+	for (int i = 0; i <= 10; i++)
+	{
+		Road->Radius = 10000;
+		Road->SplinePoints = 10;
+		Road->DegreeStep = 90 / Road->SplinePoints;
+		Road->TurnSide = i % 2 == 0 ? 1.0f : -1.0f;
+		Road->Add();
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 		Road->Radius = 0;
 		Road->SplinePoints = 10;
 		Road->DegreeStep = 0;
 		Road->Add();
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
-	
-		Road->Radius = 10000 + (i * 10000);
-		Road->SplinePoints = 10;
-		Road->DegreeStep = 90 / Road->SplinePoints;
-		Road->Add();
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 	}
+	
+	
+	// for (int i = 0; i <= 10; i++) {
+	// 	Road->Radius = 0;
+	// 	Road->SplinePoints = 10;
+	// 	Road->DegreeStep = 0;
+	// 	Road->Add();
+	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
+	//
+	// 	Road->Radius = 10000 + (i * 10000);
+	// 	Road->SplinePoints = 10;
+	// 	Road->DegreeStep = 90 / Road->SplinePoints;
+	// 	Road->Add();
+	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
+	// }
 	// Road->Add();
 	// Road->Add();
 	// Road->Add();

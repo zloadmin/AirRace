@@ -245,7 +245,7 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 		);
 	//Spline->GetLocationAtSplinePoint(StartIndex + 2, ESplineCoordinateSpace::World);
 	// const FVector CenterOfRadius(0, 0, 0);
-	UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
+	// UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
 
 	int Index = 0;
 	for (int CurrentIndex = StartIndex; CurrentIndex <= FinishIndex + (SplinePointsOffset * 2); CurrentIndex++)
@@ -275,7 +275,7 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 		// get start degree 
 
 		// make a turn 
-		const float Degree = (CurrentAngle + 90.0f) - Index * DegreeStep;
+		const float Degree = (CurrentAngle + (90.0f * TurnSide)) - (TurnSide * Index) * DegreeStep;
 		constexpr float Angle = 180.0f; // 1° × π/180 = 0.01745rad
 		// x=x0+r⋅cos δ
 		// UE_LOG(LogTemp, Warning, TEXT("X is %f + %i * %f"), CenterOfRadius.X, Radius, UKismetMathLibrary::Cos(Degree * PI / Angle));
@@ -329,14 +329,15 @@ FVector ASplineActor::GetCenterOfTurn(const int StartTurnIndex)
 	// FVector BeforeStartTurnPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex - 1, ESplineCoordinateSpace::World);
 	float AngleLastTwoPoints = GetAngleOfSplineIndexes(StartTurnIndex - 1, StartTurnIndex);
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints %f"), AngleLastTwoPoints));
-	AngleLastTwoPoints -= 90.0f;
+	// AngleLastTwoPoints = TurnSide ? AngleLastTwoPoints - 90.0f : AngleLastTwoPoints + 90.0f;	
+	AngleLastTwoPoints -= 90.0f;	
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints + 90 %f"), AngleLastTwoPoints));
 	AngleLastTwoPoints = FMath::Fmod(AngleLastTwoPoints + 360.f, 360.f);
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints + 90 (360) %f"), AngleLastTwoPoints));
 	constexpr float Angle = 180.0f;
 	FVector FirstPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex, ESplineCoordinateSpace::World);
-	const float X = FirstPoint.X + Radius * UKismetMathLibrary::Cos(AngleLastTwoPoints * PI / Angle);
-	const float Y = FirstPoint.Y + Radius * UKismetMathLibrary::Sin(AngleLastTwoPoints * PI / Angle);
+	const float X = FirstPoint.X + (Radius * TurnSide) * UKismetMathLibrary::Cos(AngleLastTwoPoints * PI / Angle);
+	const float Y = FirstPoint.Y + (Radius * TurnSide) * UKismetMathLibrary::Sin(AngleLastTwoPoints * PI / Angle);
 	return FVector(X, Y, FirstPoint.Z);
 }
 
