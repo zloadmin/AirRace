@@ -314,7 +314,6 @@ float ASplineActor::GetAngleOfSplineIndexes(const int FirstIndex, const int Seco
 	const FVector Direction = SecondPoint - FirstPoint;
 	const float AngleRadians = FMath::Atan2(Direction.Y, Direction.X);
 	const float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
-
 	return FMath::Fmod(AngleDegrees + 360.f, 360.f);
 }
 

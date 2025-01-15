@@ -1,6 +1,6 @@
 # TODO
 
-* make a turn to two sides
+* ~~make a turn to two sides~~
 * automatic add spline
 * add android buttons
 * add game over
