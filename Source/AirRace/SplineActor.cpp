@@ -11,6 +11,7 @@
 #include "Logging/StructuredLog.h"
 #include "UObject/ConstructorHelpers.h"
 #include "DrawDebugHelpers.h"
+#include "Engine/TriggerBox.h"
 
 // Sets default values
 ASplineActor::ASplineActor()
@@ -28,6 +29,12 @@ ASplineActor::ASplineActor()
 	if (MeshAsset.Object)
 	{
 		StaticMesh = MeshAsset.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UMaterial> DebugMaterialAssert(
+		TEXT("/Script/Engine.Material'/Game/StarterContent/Materials/M_AssetPlatform.M_AssetPlatform'"));
+	if (DebugMaterialAssert.Object)
+	{
+		DebugMaterial = DebugMaterialAssert.Object;
 	}
 
 	// BoxComponent = CreateDefaultSubobject<UBoxComponent>("TriggerBox");
@@ -63,24 +70,22 @@ void ASplineActor::Tick(float DeltaTime)
 // {
 // }
 
-// void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-//                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-//                                        const FHitResult& SweepResult)
-// {
-// 	if(!OtherActor->IsA(ABaseSportsCarPawn::StaticClass()))
-// 	{
-// 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
-// 		return;
-// 	}
-// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
-// 	UWorld* const World = GetWorld();
-// 	if (World != nullptr)
-// 	{
-// 		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
-// 		AAirRaceGameState* AirRaceGameState = World->GetGameState<AAirRaceGameState>();
-// 		AirRaceGameState->GenerateNextRoad();
-// 	}
-// }
+void ASplineActor::OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                       const FHitResult& SweepResult)
+{
+	if (!OtherActor->IsA(ABaseSportsCarPawn::StaticClass()))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+		return;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ASplineActor::OnOverlapStartBegin")));
+	UWorld* const World = GetWorld();
+	if (World != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("SPAWN ONE")));
+	}
+}
 
 void ASplineActor::OnConstruction(const FTransform& Transform)
 {
@@ -224,25 +229,25 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 	if (!Radius) return;
 	// TODO: make as method getCenterOfRadius
 	// 1 take startPoint
-	
+
 	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex + SplinePointsOffset,
 	                                                               ESplineCoordinateSpace::World);
 	// 2 add radius by 
 
 	// const FVector CenterOfRadius = FVector(StartPointPos.X, StartPointPos.Y - Radius, StartPointPos.Z);
-	const FVector CenterOfRadius =  GetCenterOfTurn(StartIndex + SplinePointsOffset);
+	const FVector CenterOfRadius = GetCenterOfTurn(StartIndex + SplinePointsOffset);
 	UWorld* const World = GetWorld();
 	DrawDebugSphere(
-			World,          // World context
-			CenterOfRadius,       // Location of the sphere
-			Radius,         // Radius of the sphere
-			12,             // Segments for smoothness
-			FColor::Red,          // Color of the sphere
-			true,    // Whether the sphere should persist
-			999,       // Time to display the sphere (0 means one frame)
-			0,              // Depth priority (default is 0)
-			2.0f            // Thickness of the lines
-		);
+		World, // World context
+		CenterOfRadius, // Location of the sphere
+		Radius, // Radius of the sphere
+		12, // Segments for smoothness
+		FColor::Red, // Color of the sphere
+		true, // Whether the sphere should persist
+		999, // Time to display the sphere (0 means one frame)
+		0, // Depth priority (default is 0)
+		2.0f // Thickness of the lines
+	);
 	//Spline->GetLocationAtSplinePoint(StartIndex + 2, ESplineCoordinateSpace::World);
 	// const FVector CenterOfRadius(0, 0, 0);
 	// UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
@@ -317,6 +322,100 @@ float ASplineActor::GetAngleOfSplineIndexes(const int FirstIndex, const int Seco
 	return FMath::Fmod(AngleDegrees + 360.f, 360.f);
 }
 
+void ASplineActor::OnTriggerBoxBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+	if (!OtherActor->IsA(ABaseSportsCarPawn::StaticClass()))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+		return;
+	}
+	
+	if ( FMath::RandRange(0.0f, 1.0f) > 0.5)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
+		Radius = 10000;
+		SplinePoints = 10;
+		DegreeStep = 90 / SplinePoints;
+		TurnSide = 1.0f;
+		Add();
+	} else {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
+		Radius = 10000;
+		SplinePoints = 10;
+		DegreeStep = 90 / SplinePoints;
+		TurnSide = -1.0f;
+		Add();
+	}
+}
+
+void ASplineActor::GenerateTriggerBox(const int FirstIndex, const int SecondIndex)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+	const FVector LastPointPosition = Spline->GetLocationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	const FRotator LastPointRotator = Spline->GetRotationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+
+	ATriggerBox* TriggerBox = World->SpawnActor<ATriggerBox>(ATriggerBox::StaticClass(), LastPointPosition,
+	                                                         LastPointRotator);
+	if (TriggerBox)
+	{
+		
+		TriggerBox->SetActorScale3D(FVector(10, 10000, 10000));
+		TriggerBox->OnActorBeginOverlap.AddDynamic(this, &ASplineActor::OnTriggerBoxBeginOverlap);
+	}
+
+
+	// UBoxComponent* TriggerBox = NewObject<UBoxComponent>(World, TEXT("TriggerBox"));
+	// if (!TriggerBox) return;
+	//
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Triger BOX!!!")));
+	// const FVector LastPointPosition = Spline->GetLocationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	// TriggerBox->RegisterComponent();
+	// TriggerBox->SetWorldLocation(FVector(LastPointPosition.X, LastPointPosition.Y, LastPointPosition.Z));
+	// // Set desired position
+	// TriggerBox->SetBoxExtent(FVector(10, 10000, 10000), true); // Set size
+	// TriggerBox->SetHiddenInGame(false);
+	// TriggerBox->SetVisibility(true);
+	// TriggerBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	// TriggerBox->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	// TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
+	// if (DebugMaterial)
+	// {
+	// 	TriggerBox->SetMaterial(0, DebugMaterial);
+	// }
+
+
+	// TriggerBox->SetBoxExtent(FVector(10, 1000, 1000), true);
+	// TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
+	// TriggerBox->SetHiddenInGame(false); // Ensure it's not hidden in the game
+	// TriggerBox->bHiddenInGame = false;  // Deprecated, but sometimes useful in older versions
+	//
+	// const FVector LastPointPosition = Spline->GetLocationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	// const FRotator LastPointRotator = Spline->GetRotationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	// TriggerBox->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	//
+	// UWorld* World = GetWorld();
+	// if (World)
+	// {
+	// 	const FActorSpawnParameters SpawnInfo;
+	// 	World->SpawnActor<UBoxComponent>(TriggerBox->GetClass(), LastPointPosition, LastPointRotator, SpawnInfo);
+	// } else
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, FString::Printf(TEXT("NO Word")));
+	// }
+
+	// BoxComponent->SetBoxExtent(FVector(10, 1000, 1000), true);
+	// BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	// BoxComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	// BoxComponent->SetRelativeLocation(FVector(10, 0, 320));
+	// FVector LastPointPosition = Spline->GetLocationAtSplinePoint(SecondIndex, ESplineCoordinateSpace::World);
+	// TODO: odd offset of LastPointPosition;
+	// BoxComponent->SetWorldLocation(LastPointPosition);
+	// BoxComponent->SetGenerateOverlapEvents(true);
+	// BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	// BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ASplineActor::OnOverlapStartBegin);
+}
+
 void ASplineActor::SetCurrentAngle()
 {
 	CurrentAngle = GetAngleOfSplineIndexes(GetSplineLastIndex() - 1, GetSplineLastIndex());
@@ -327,12 +426,15 @@ FVector ASplineActor::GetCenterOfTurn(const int StartTurnIndex)
 	// FVector StartTurnPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex, ESplineCoordinateSpace::World);
 	// FVector BeforeStartTurnPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex - 1, ESplineCoordinateSpace::World);
 	float AngleLastTwoPoints = GetAngleOfSplineIndexes(StartTurnIndex - 1, StartTurnIndex);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints %f"), AngleLastTwoPoints));
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	                                 FString::Printf(TEXT("AngleLastTwoPoints %f"), AngleLastTwoPoints));
 	// AngleLastTwoPoints = TurnSide ? AngleLastTwoPoints - 90.0f : AngleLastTwoPoints + 90.0f;	
-	AngleLastTwoPoints -= 90.0f;	
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints + 90 %f"), AngleLastTwoPoints));
+	AngleLastTwoPoints -= 90.0f;
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	                                 FString::Printf(TEXT("AngleLastTwoPoints + 90 %f"), AngleLastTwoPoints));
 	AngleLastTwoPoints = FMath::Fmod(AngleLastTwoPoints + 360.f, 360.f);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleLastTwoPoints + 90 (360) %f"), AngleLastTwoPoints));
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	                                 FString::Printf(TEXT("AngleLastTwoPoints + 90 (360) %f"), AngleLastTwoPoints));
 	constexpr float Angle = 180.0f;
 	FVector FirstPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex, ESplineCoordinateSpace::World);
 	const float X = FirstPoint.X + (Radius * TurnSide) * UKismetMathLibrary::Cos(AngleLastTwoPoints * PI / Angle);
@@ -398,6 +500,7 @@ void ASplineActor::Add()
 	// GenerateStaticMesh(FinishIndex + 1, addPoints);
 }
 
+
 void ASplineActor::Generate(const int StartIndex, const int FinishIndex)
 {
 	if (StartIndex > 0) SetCurrentAngle();
@@ -405,4 +508,5 @@ void ASplineActor::Generate(const int StartIndex, const int FinishIndex)
 	GenerateSplinePoints(StartIndex, FinishIndex);
 	GenerateTurn(StartIndex, FinishIndex);
 	GenerateStaticMesh(StartIndex, FinishIndex);
+	GenerateTriggerBox(StartIndex, FinishIndex);
 }

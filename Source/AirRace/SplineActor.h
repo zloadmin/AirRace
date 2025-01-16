@@ -48,7 +48,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 10, ClampMax = 100))
 	int SplinePoints = 5;
-	
+
 	// Offset before and after spline points 
 	const int SplinePointsOffset = 2;
 	float CurrentAngle = 0.0f;
@@ -67,12 +67,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1000, ClampMax = 1000000))
 	int Radius = 0;
-	
+
 	float TurnSide = 1.0f; // positive left, negative right; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1.0f, ClampMax = 45.0f))
 	float DegreeStep = 0.0f;
-	
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline", meta=(ClampMin = 1, ClampMax = 100))
 	int PreSetRandomForm;
@@ -80,9 +80,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	float RandomForm;
 
-	
+
 	UFUNCTION()
-	// void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	// overlap end function
 	// UFUNCTION()
@@ -96,6 +96,9 @@ public:
 	float GetRandomForm();
 	void LogSplinePointsLocations();
 	void Add();
+	
+	UFUNCTION()
+	void OnTriggerBoxBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
 private:
 	// Generation
 	void Generate(const int StartIndex, const int FinishIndex);
@@ -103,12 +106,14 @@ private:
 	void GenerateStaticMesh(const int StartIndex, const int FinishIndex);
 	void GenerateTurn(const int StartIndex, const int FinishIndex);
 	float GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
+	void GenerateTriggerBox(const int FirstIndex, const int SecondIndex);
 	void SetCurrentAngle();
 	FVector GetCenterOfTurn(const int StartTurnIndex);
-	
+
+	class UMaterial* DebugMaterial;
+
 	// Spline 
 	int GetSplineLastIndex();
 	FVector GetFinish();
 	FRotator GetRotation();
-	
 };

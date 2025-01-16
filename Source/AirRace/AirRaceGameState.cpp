@@ -95,17 +95,17 @@ void AAirRaceGameState::BeginPlay()
 
 	for (int i = 0; i <= 10; i++)
 	{
-		Road->Radius = 10000;
-		Road->SplinePoints = 10;
-		Road->DegreeStep = 90 / Road->SplinePoints;
-		Road->TurnSide = i % 2 == 0 ? 1.0f : -1.0f;
-		Road->Add();
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
+		// Road->Radius = 10000;
+		// Road->SplinePoints = 10;
+		// Road->DegreeStep = 90 / Road->SplinePoints;
+		// Road->TurnSide = i % 2 == 0 ? 1.0f : -1.0f;
+		// Road->Add();
+		// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 		Road->Radius = 0;
 		Road->SplinePoints = 10;
 		Road->DegreeStep = 0;
 		Road->Add();
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
+		// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Angle: %f"), Road->CurrentAngle));
 	}
 	
 	
