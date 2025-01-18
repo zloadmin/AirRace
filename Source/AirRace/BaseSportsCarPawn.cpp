@@ -264,10 +264,13 @@ void ABaseSportsCarPawn::AndroidControl()
 		FVector Acceleration;
 
 		PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
+		if (!Tilt.IsNearlyZero())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
+		}
 	}
 }
 
