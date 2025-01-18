@@ -263,16 +263,14 @@ void ABaseSportsCarPawn::AndroidControl()
 		FVector Gravity;
 		FVector Acceleration;
 
-			PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
-
-		// Преобразование данных акселерометра в поворот
-		// FRotator NewRotation = UKismetMathLibrary::MakeRotFromX(Tilt);
-
-		// Применение поворота к актеру
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
+		PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
+		if (!Tilt.IsNearlyZero())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
+		}
 	}
 }
 
