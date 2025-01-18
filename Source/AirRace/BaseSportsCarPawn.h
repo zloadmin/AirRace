@@ -59,6 +59,9 @@ public:
 	/** Handle nitro released */
 	void OnNitroReleased();
 
+	/** Check is car not fail down */
+	void CheckCarAlive();
+
 	static const FName EngineAudioRPM;
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 	FText SpeedDisplayString;
@@ -84,3 +87,7 @@ private :
 	FDateTime SpeedPerHundredStartTime;
 	FDateTime SpeedPerHundredFinishTime;
 };
+
+
+
+

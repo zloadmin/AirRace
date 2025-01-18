@@ -15,6 +15,14 @@ class AAirRaceGameMode : public AGameModeBase
 
 public:
 	AAirRaceGameMode();
+	
+	// Function to trigger Game Over
+	UFUNCTION(BlueprintCallable)
+	void GameOver();
+	
+	// Function to restart the game
+	UFUNCTION(BlueprintCallable)
+	void RestartGame();
 
 
 };

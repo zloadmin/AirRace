@@ -3,6 +3,7 @@
 
 #include "BaseSportsCarPawn.h"
 
+#include "AirRaceGameMode.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -10,6 +11,8 @@
 #include "Components/TextRenderComponent.h"
 #include "Sound/SoundCue.h"
 #include "Misc/DateTime.h"
+#include "AirRaceGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 
 const FName ABaseSportsCarPawn::EngineAudioRPM("RPM");
@@ -39,6 +42,8 @@ void ABaseSportsCarPawn::Tick(float Delta)
 	ProcessSpeedPerHundred();
 	UpdateHUDStrings();
 	SetupHUD();
+	CheckCarAlive();
+	
 }
 
 void ABaseSportsCarPawn::BeginPlay()
@@ -225,6 +230,19 @@ void ABaseSportsCarPawn::SetupHUD()
 	if ((PlayerController != nullptr) && (InCarSpeed != nullptr))
 	{
 		InCarSpeed->SetText(SpeedDisplayString);
+	}
+}
+inline void ABaseSportsCarPawn::CheckCarAlive()
+{
+	if (this->GetActorLocation().Z < 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("GAME OVER GAME OVER GAME OVER GAME OVER GAME OVER GAME OVER ")));
+		AAirRaceGameMode* GameMode = Cast<AAirRaceGameMode>(UGameplayStatics::GetGameMode(this));
+		if (GameMode)
+		{
+			GameMode->GameOver();
+			GameMode->RestartGame();
+		}
 	}
 }
 

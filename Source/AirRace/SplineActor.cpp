@@ -236,18 +236,18 @@ void ASplineActor::GenerateTurn(const int StartIndex, const int FinishIndex)
 
 	// const FVector CenterOfRadius = FVector(StartPointPos.X, StartPointPos.Y - Radius, StartPointPos.Z);
 	const FVector CenterOfRadius = GetCenterOfTurn(StartIndex + SplinePointsOffset);
-	UWorld* const World = GetWorld();
-	DrawDebugSphere(
-		World, // World context
-		CenterOfRadius, // Location of the sphere
-		Radius, // Radius of the sphere
-		12, // Segments for smoothness
-		FColor::Red, // Color of the sphere
-		true, // Whether the sphere should persist
-		999, // Time to display the sphere (0 means one frame)
-		0, // Depth priority (default is 0)
-		2.0f // Thickness of the lines
-	);
+	// UWorld* const World = GetWorld();
+	// DrawDebugSphere(
+	// 	World, // World context
+	// 	CenterOfRadius, // Location of the sphere
+	// 	Radius, // Radius of the sphere
+	// 	12, // Segments for smoothness
+	// 	FColor::Red, // Color of the sphere
+	// 	true, // Whether the sphere should persist
+	// 	999, // Time to display the sphere (0 means one frame)
+	// 	0, // Depth priority (default is 0)
+	// 	2.0f // Thickness of the lines
+	// );
 	//Spline->GetLocationAtSplinePoint(StartIndex + 2, ESplineCoordinateSpace::World);
 	// const FVector CenterOfRadius(0, 0, 0);
 	// UE_LOG(LogTemp, Warning, TEXT("CenterOfRadius is %s"), *CenterOfRadius.ToString());
@@ -326,26 +326,31 @@ void ASplineActor::OnTriggerBoxBeginOverlap(AActor* OverlappedActor, AActor* Oth
 {
 	if (!OtherActor->IsA(ABaseSportsCarPawn::StaticClass()))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
+		// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
 		return;
 	}
-	
-	if ( FMath::RandRange(0.0f, 1.0f) > 0.5)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
-		Radius = 10000;
-		SplinePoints = 10;
-		DegreeStep = 90 / SplinePoints;
-		TurnSide = 1.0f;
-		Add();
-	} else {
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
-		Radius = 10000;
-		SplinePoints = 10;
-		DegreeStep = 90 / SplinePoints;
-		TurnSide = -1.0f;
-		Add();
-	}
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN")));
+	Radius = 10000;
+	SplinePoints = 10;
+	DegreeStep = 90 / SplinePoints;
+	TurnSide = TurnSide == -1.0f ? 1.0f : -1.0f;
+	Add();
+	// if ( FMath::RandRange(0.0f, 1.0f) > 0.5)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
+	// 	Radius = 10000;
+	// 	SplinePoints = 10;
+	// 	DegreeStep = 90 / SplinePoints;
+	// 	TurnSide = 1.0f;
+	// 	Add();
+	// } else {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN left")));
+	// 	Radius = 10000;
+	// 	SplinePoints = 10;
+	// 	DegreeStep = 90 / SplinePoints;
+	// 	TurnSide = -1.0f;
+	// 	Add();
+	// }
 }
 
 void ASplineActor::GenerateTriggerBox(const int FirstIndex, const int SecondIndex)

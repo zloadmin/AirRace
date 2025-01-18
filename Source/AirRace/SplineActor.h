@@ -95,6 +95,7 @@ public:
 	void ClimbSplinePoints();
 	float GetRandomForm();
 	void LogSplinePointsLocations();
+	
 	void Add();
 	
 	UFUNCTION()
