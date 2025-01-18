@@ -92,7 +92,7 @@ void ASplineActor::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	if (!StaticMesh) return;
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ASplineActor::OnConstruction")));
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ASplineActor::OnConstruction")));
 	// MoveSplinePointsToCycle();
 	// ClimbSplinePoints();
 	Generate(0, SplinePoints);
@@ -329,7 +329,7 @@ void ASplineActor::OnTriggerBoxBeginOverlap(AActor* OverlappedActor, AActor* Oth
 		// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("IGNORE ONE")));
 		return;
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN")));
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Generate TURN")));
 	Radius = 10000;
 	SplinePoints = 10;
 	DegreeStep = 90 / SplinePoints;
@@ -431,15 +431,15 @@ FVector ASplineActor::GetCenterOfTurn(const int StartTurnIndex)
 	// FVector StartTurnPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex, ESplineCoordinateSpace::World);
 	// FVector BeforeStartTurnPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex - 1, ESplineCoordinateSpace::World);
 	float AngleLastTwoPoints = GetAngleOfSplineIndexes(StartTurnIndex - 1, StartTurnIndex);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
-	                                 FString::Printf(TEXT("AngleLastTwoPoints %f"), AngleLastTwoPoints));
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	//                                  FString::Printf(TEXT("AngleLastTwoPoints %f"), AngleLastTwoPoints));
 	// AngleLastTwoPoints = TurnSide ? AngleLastTwoPoints - 90.0f : AngleLastTwoPoints + 90.0f;	
 	AngleLastTwoPoints -= 90.0f;
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
-	                                 FString::Printf(TEXT("AngleLastTwoPoints + 90 %f"), AngleLastTwoPoints));
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	//                                  FString::Printf(TEXT("AngleLastTwoPoints + 90 %f"), AngleLastTwoPoints));
 	AngleLastTwoPoints = FMath::Fmod(AngleLastTwoPoints + 360.f, 360.f);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
-	                                 FString::Printf(TEXT("AngleLastTwoPoints + 90 (360) %f"), AngleLastTwoPoints));
+	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+	//                                  FString::Printf(TEXT("AngleLastTwoPoints + 90 (360) %f"), AngleLastTwoPoints));
 	constexpr float Angle = 180.0f;
 	FVector FirstPoint = Spline->GetLocationAtSplinePoint(StartTurnIndex, ESplineCoordinateSpace::World);
 	const float X = FirstPoint.X + (Radius * TurnSide) * UKismetMathLibrary::Cos(AngleLastTwoPoints * PI / Angle);

@@ -3,7 +3,7 @@
 * ~~make a turn to two sides~~
 * ~~automatic add spline~~
 * add android buttons
-* add game over
+* ~~add game over~~
 * test on tablet
 * check before generate - no cross road and etc
 

@@ -23,12 +23,16 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
 
+#if PLATFORM_ANDROID
+	// tod 
+#else
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseSportsCarPawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseSportsCarPawn::MoveRight);
 	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ABaseSportsCarPawn::OnHandbrakePressed);
 	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ABaseSportsCarPawn::OnHandbrakeReleased);
 	PlayerInputComponent->BindAction("Nitro", IE_Pressed, this, &ABaseSportsCarPawn::OnNitroPressed);
 	PlayerInputComponent->BindAction("Nitro", IE_Released, this, &ABaseSportsCarPawn::OnNitroReleased);
+#endif
 }
 
 void ABaseSportsCarPawn::Tick(float Delta)
@@ -43,7 +47,9 @@ void ABaseSportsCarPawn::Tick(float Delta)
 	UpdateHUDStrings();
 	SetupHUD();
 	CheckCarAlive();
-	
+#if PLATFORM_ANDROID
+	AndroidControl();
+#endif
 }
 
 void ABaseSportsCarPawn::BeginPlay()
@@ -232,17 +238,41 @@ void ABaseSportsCarPawn::SetupHUD()
 		InCarSpeed->SetText(SpeedDisplayString);
 	}
 }
+
 inline void ABaseSportsCarPawn::CheckCarAlive()
 {
 	if (this->GetActorLocation().Z < 0)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("GAME OVER GAME OVER GAME OVER GAME OVER GAME OVER GAME OVER ")));
 		AAirRaceGameMode* GameMode = Cast<AAirRaceGameMode>(UGameplayStatics::GetGameMode(this));
 		if (GameMode)
 		{
 			GameMode->GameOver();
 			GameMode->RestartGame();
 		}
+	}
+}
+
+void ABaseSportsCarPawn::AndroidControl()
+{
+	auto PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+
+	if (PlayerController)
+	{
+		FVector Tilt;
+		FVector RotationRate;
+		FVector Gravity;
+		FVector Acceleration;
+
+			PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
+
+		// Преобразование данных акселерометра в поворот
+		// FRotator NewRotation = UKismetMathLibrary::MakeRotFromX(Tilt);
+
+		// Применение поворота к актеру
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
 	}
 }
 
@@ -280,7 +310,7 @@ void ABaseSportsCarPawn::ProcessSpeedPerHundred()
 {
 	UpdateSpeedPerHundredStart();
 	UpdateSpeedPerHundredFinish();
-	if(bSpeedPerHundredStarted && bSpeedPerHundredFinished)
+	if (bSpeedPerHundredStarted && bSpeedPerHundredFinished)
 	{
 		ShowSpeedPerHundred();
 		ResetSpeedPerHundred();
@@ -293,7 +323,8 @@ void ABaseSportsCarPawn::UpdateSpeedPerHundredStart()
 	{
 		bSpeedPerHundredStarted = true;
 		SpeedPerHundredStartTime = FDateTime().Now();
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("UpdateSpeedPerHundredStart %f"), SpeedKPH));
+		// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+		//                                  FString::Printf(TEXT("UpdateSpeedPerHundredStart %f"), SpeedKPH));
 	}
 }
 
@@ -303,10 +334,10 @@ void ABaseSportsCarPawn::UpdateSpeedPerHundredFinish()
 	{
 		bSpeedPerHundredFinished = true;
 		SpeedPerHundredFinishTime = FDateTime().Now();
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("UpdateSpeedPerHundredFinish %f"), SpeedKPH));
+		// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,
+		//                                  FString::Printf(TEXT("UpdateSpeedPerHundredFinish %f"), SpeedKPH));
 	}
 }
-
 
 
 void ABaseSportsCarPawn::ResetSpeedPerHundred()
@@ -325,10 +356,12 @@ void ABaseSportsCarPawn::UpdateHUDStrings()
 	// Using FText because this is display text that should be localizable
 	SpeedDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} km/h"), FText::AsNumber(KPH_int));
 }
+
 void ABaseSportsCarPawn::ShowSpeedPerHundred()
 {
 	FTimespan Timespan = SpeedPerHundredFinishTime - SpeedPerHundredStartTime;
-	SpeedPerHundred = FText::Format(LOCTEXT("SpeedPerHundredFormat", "Until 100KPH is {0}"), FText::FromString(Timespan.ToString()));
+	SpeedPerHundred = FText::Format(
+		LOCTEXT("SpeedPerHundredFormat", "Until 100KPH is {0}"), FText::FromString(Timespan.ToString()));
 }
 
 

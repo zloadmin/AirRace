@@ -67,7 +67,7 @@ void AAirRaceGameState::InitRoad()
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Init road")));
+		// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Init road")));
 
 		Road = World->SpawnActor<ASplineActor>(
 			ASplineActor::StaticClass(),

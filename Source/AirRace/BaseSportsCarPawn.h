@@ -61,6 +61,8 @@ public:
 
 	/** Check is car not fail down */
 	void CheckCarAlive();
+	/** Android controller */
+	void AndroidControl();
 
 	static const FName EngineAudioRPM;
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
