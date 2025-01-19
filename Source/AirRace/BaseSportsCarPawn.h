@@ -46,6 +46,8 @@ public:
 	void MoveForward(float Val);
 	/** Handle pressing right */
 	void MoveRight(float Val);
+	/** Handle pressing right */
+	void RotationRate(float Val);
 	/** Handle handbrake pressed */
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
@@ -89,6 +91,8 @@ private :
 	FDateTime SpeedPerHundredStartTime;
 	FDateTime SpeedPerHundredFinishTime;
 };
+
+
 
 
 

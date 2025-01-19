@@ -22,17 +22,19 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
-
-#if PLATFORM_ANDROID
-	// tod 
-#else
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseSportsCarPawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseSportsCarPawn::MoveRight);
+	PlayerInputComponent->BindAxis("RotationRate", this, &ABaseSportsCarPawn::RotationRate);
 	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ABaseSportsCarPawn::OnHandbrakePressed);
 	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ABaseSportsCarPawn::OnHandbrakeReleased);
 	PlayerInputComponent->BindAction("Nitro", IE_Pressed, this, &ABaseSportsCarPawn::OnNitroPressed);
 	PlayerInputComponent->BindAction("Nitro", IE_Released, this, &ABaseSportsCarPawn::OnNitroReleased);
-#endif
+	
+// #if PLATFORM_ANDROID || PLATFORM_IOS
+// 	// todo: 
+// #else
+// 	
+// #endif
 }
 
 void ABaseSportsCarPawn::Tick(float Delta)
@@ -218,6 +220,11 @@ void ABaseSportsCarPawn::MoveRight(float Val)
 	GetVehicleMovement()->SetSteeringInput(Val);
 }
 
+void ABaseSportsCarPawn::RotationRate(float Val)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("RotationRate %f"), Val));
+}
+
 void ABaseSportsCarPawn::OnHandbrakePressed()
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ABaseSportsCarPawn::OnHandbrakePressed")));
@@ -263,7 +270,7 @@ void ABaseSportsCarPawn::AndroidControl()
 		FVector Gravity;
 		FVector Acceleration;
 
-		PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
+		PlayerController->InputMotion(Tilt, RotationRate, Gravity, Acceleration);
 		if (!Tilt.IsNearlyZero())
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
