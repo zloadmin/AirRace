@@ -94,6 +94,8 @@ void AAirRaceGameState::BeginPlay()
 	Road->Add();
 	Road->Add();
 	Road->Add();
+	Road->Add();
+	Road->Add();
 	
 	// Road->Radius = 10000;
 	// Road->SplinePoints = 10;

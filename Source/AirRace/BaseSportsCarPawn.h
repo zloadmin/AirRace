@@ -44,10 +44,26 @@ public:
 	FORCEINLINE UChaosWheeledVehicleMovementComponent* GetWheeledVehicleMovementComponent();
 	/** Handle pressing forwards */
 	void MoveForward(float Val);
+	void MoveForwardTouch(float Val);
 	/** Handle pressing right */
 	void MoveRight(float Val);
-	/** Handle pressing right */
-	void RotationRate(float Val);
+	// /** RotationRate */
+	// void RotationRate(float Val);
+	// /** Tilt */
+	void Tilt(float Val);
+	// /** Gravity */
+	// void Gravity(float Val);
+	// /** Acceleration */
+	// void Acceleration(float Val);
+	/** RotationRate */
+	void RotationRate(FVector Val);
+	/** Tilt */
+	void Tilt(FVector Val);
+	void GamePad(float Val);
+	/** Gravity */
+	void Gravity(FVector Val);
+	/** Acceleration */
+	void Acceleration(FVector Val);
 	/** Handle handbrake pressed */
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
@@ -91,6 +107,8 @@ private :
 	FDateTime SpeedPerHundredStartTime;
 	FDateTime SpeedPerHundredFinishTime;
 };
+
+
 
 
 

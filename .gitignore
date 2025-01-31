@@ -1,7 +1,9 @@
 # Visual Studio 2015 user specific files
 .vs/
 .idea/
+.sync/
 .vsconfig
+.vscode/
 
 
 # Compiled Object files
@@ -78,3 +80,4 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 Android_ASTC
+EditorOpenOrder.log
