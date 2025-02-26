@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RoadActorParams.h"
 #include "Components/BoxComponent.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/Actor.h"
@@ -27,33 +28,32 @@ public:
 	void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnTriggerBoxBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	
-	int SplinePoints = 5;
-	const int SplinePointsOffset = 2;
-	float CurrentAngle = 0.0f;
-	int DistanceBetweenPoints = 1000;
-	int Radius = 0;
-	float TurnSide = 1.0f; // positive left, negative right; 
-	float DegreeStep = 0.0f;
-	
-	
+	// TODO: rename to with prefix Generate and make all private
+	// int SplinePoints = 5;
+	// const int SplinePointsOffset = 2;
+	double CurrentAngle = 0.0f;
+	// int DistanceBetweenPoints = 1000;
+	// int Radius = 0;
+	// float TurnSide = 1.0f; // positive left, negative right; 
+	// float DegreeStep = 0.0f;
+	//
+	//
 	virtual void OnConstruction(const FTransform& Transform) override;
-	void Add();
+	void Add(const FRoadActorParams &Params);
 private:
 	// Generation
-	void Generate(const int StartIndex, const int FinishIndex);
-	void GenerateSplinePoints(const int StartIndex, const int FinishIndex);
-	void GenerateStaticMesh(const int StartIndex, const int FinishIndex);
-	void GenerateTurn(const int StartIndex, const int FinishIndex);
+	void Generate(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
+	void GenerateSplinePoints(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
+	void GenerateStaticMesh(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
+	void GenerateTurn(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
 	void GenerateTriggerBox(const int FirstIndex, const int SecondIndex);
-
 	
 	void SetCurrentAngle();
-	float GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
-	FVector GetCenterOfTurn(const int StartTurnIndex);
+	double GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
+	FVector GetCenterOfTurn(const int StartTurnIndex, const FRoadActorParams &Params);
 	
 	// Spline 
-	int GetSplineLastIndex();
+	int GetSplineLastIndex() const;
 	FVector GetFinish();
 	FRotator GetRotation();
 };

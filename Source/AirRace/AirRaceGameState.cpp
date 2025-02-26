@@ -8,18 +8,12 @@ void AAirRaceGameState::InitRoad()
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
-		Road = World->SpawnActor<ARoadActor>(
-			ARoadActor::StaticClass(),
-			FVector(0, 0, 0),
-			FRotator(0, 0, 0)
-		);
-		Road->Add();
-		Road->Add();
-		Road->Add();
+		Road = World->SpawnActor<ARoadActor>(ARoadActor::StaticClass(), FVector(), FRotator());
+		Road->Add(FRoadActorParams());
+		// Road->Add();
+		// Road->Add();
 	}
 }
-
-
 
 
 void AAirRaceGameState::BeginPlay()
@@ -32,4 +26,3 @@ void AAirRaceGameState::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 }
-
