@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SplineActor.h"
-#include "StraightRoadActor.h"
 #include "GameFramework/GameModeBase.h"
 #include "AirRaceGameMode.generated.h"
 
@@ -23,6 +21,5 @@ public:
 	// Function to restart the game
 	UFUNCTION(BlueprintCallable)
 	void RestartGame();
-
-
+	
 };

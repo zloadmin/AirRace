@@ -3,14 +3,9 @@
 
 #include "AirRaceHUD.h"
 
-#include "BaseSportsCarPawn.h"
-#include "ChaosWheeledVehicleMovementComponent.h"
+#include "Cars/BaseSportsCarPawn.h"
 #include "Engine/Canvas.h"
 
-AAirRaceHUD::AAirRaceHUD()
-{
-	
-}
 
 void AAirRaceHUD::DrawHUD()
 {
@@ -31,19 +26,5 @@ void AAirRaceHUD::DrawHUD()
 		SpeedTextItem2.Scale = ScaleVec;
 		Canvas->DrawItem(SpeedTextItem2);
 		
-		// Vehicle->DisplayDebug(Canvas, )
-		// float YL = 0.0f;
-		// float YPos = 0.0f;
-		// Vehicle->GetWheeledVehicleMovementComponent()->DrawDebug(Canvas, YL, YPos);
 	}
 }
-
-// void AAirRaceHUD::ShowDebugInfo(float& YL, float& YPos)
-// {
-// 	Super::ShowDebugInfo(YL, YPos);
-// 	ABaseSportsCarPawn* Vehicle = Cast<ABaseSportsCarPawn>(GetOwningPawn());
-// 	if(Vehicle)
-// 	{
-// 		Vehicle->DisplayDebug(Canvas, GetDebugD, YL, YPos);
-// 	}
-// }

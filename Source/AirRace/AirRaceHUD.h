@@ -14,7 +14,5 @@ class AIRRACE_API AAirRaceHUD : public AHUD
 {
 	GENERATED_BODY()
 public:
-	AAirRaceHUD();
 	virtual void DrawHUD() override;
-	// virtual void ShowDebugInfo(float& YL, float& YPos) override;
 };

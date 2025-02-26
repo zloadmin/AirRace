@@ -3,7 +3,7 @@
 
 #include "BaseSportsCarPawn.h"
 
-#include "AirRaceGameMode.h"
+#include "./../AirRaceGameMode.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Camera/CameraComponent.h"
@@ -11,7 +11,7 @@
 #include "Components/TextRenderComponent.h"
 #include "Sound/SoundCue.h"
 #include "Misc/DateTime.h"
-#include "AirRaceGameMode.h"
+
 #include "Kismet/GameplayStatics.h"
 
 
@@ -23,7 +23,6 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseSportsCarPawn::MoveForward);
-	PlayerInputComponent->BindAxis("MoveForwardTouch", this, &ABaseSportsCarPawn::MoveForwardTouch);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseSportsCarPawn::MoveRight);
 	
 	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ABaseSportsCarPawn::OnHandbrakePressed);
@@ -31,17 +30,6 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAction("Nitro", IE_Pressed, this, &ABaseSportsCarPawn::OnNitroPressed);
 	PlayerInputComponent->BindAction("Nitro", IE_Released, this, &ABaseSportsCarPawn::OnNitroReleased);
 	
-#if PLATFORM_ANDROID || PLATFORM_IOS
-	
-	PlayerInputComponent->BindVectorAxis("Tilt", this, &ABaseSportsCarPawn::Tilt);
-	PlayerInputComponent->BindAxis("Tilt", this, &ABaseSportsCarPawn::Tilt);
-	
-
-	// PlayerInputComponent->BindVectorAxis("RotationRate", this, &ABaseSportsCarPawn::RotationRate);
-	// PlayerInputComponent->BindVectorAxis("Gravity", this, &ABaseSportsCarPawn::Gravity);
-	// PlayerInputComponent->BindVectorAxis("Acceleration", this, &ABaseSportsCarPawn::Acceleration);
-	
-#endif
 }
 
 void ABaseSportsCarPawn::Tick(float Delta)
@@ -56,9 +44,6 @@ void ABaseSportsCarPawn::Tick(float Delta)
 	UpdateHUDStrings();
 	SetupHUD();
 	CheckCarAlive();
-//#if PLATFORM_ANDROID
-//	AndroidControl();
-//#endif
 }
 
 void ABaseSportsCarPawn::BeginPlay()
@@ -221,64 +206,22 @@ void ABaseSportsCarPawn::MoveForward(float Val)
 {
 	GetVehicleMovement()->SetThrottleInput(Val);
 }
-void ABaseSportsCarPawn::MoveForwardTouch(float Val)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("MoveForwardTouch 1.0F")));
-	GetVehicleMovement()->SetThrottleInput(1.0f);
-}
 
 void ABaseSportsCarPawn::MoveRight(float Val)
 {
 	GetVehicleMovement()->SetSteeringInput(Val);
 }
 
-// void ABaseSportsCarPawn::RotationRate(float Val)
-// {
-// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("RotationRate float")));
-// }
-void ABaseSportsCarPawn::Tilt(float Val)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Tilt float %f"), Val));
-}
-// void ABaseSportsCarPawn::Gravity(float Val)
-// {
-// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Gravity float")));
-// }
-// void ABaseSportsCarPawn::Acceleration(float Val)
-// {
-// 	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Acceleration float")));
-// }
 
-// void ABaseSportsCarPawn::RotationRate(FVector Val)
-// {
-// 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("RotationRate FVector %s"), *Val.ToString()));
-// }
-void ABaseSportsCarPawn::Tilt(FVector Val)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Tilt FVector X: %f"), Val.X));
-}
-void ABaseSportsCarPawn::GamePad(float Val)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("GamePad : %f"), Val));
-}
-void ABaseSportsCarPawn::Gravity(FVector Val)
-{
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Gravity FVector %s"), *Val.ToString()));
-}
-void ABaseSportsCarPawn::Acceleration(FVector Val)
-{
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Acceleration FVector %s"), *Val.ToString()));
-}
+
 
 void ABaseSportsCarPawn::OnHandbrakePressed()
 {
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ABaseSportsCarPawn::OnHandbrakePressed")));
 	GetVehicleMovement()->SetHandbrakeInput(true);
 }
 
 void ABaseSportsCarPawn::OnHandbrakeReleased()
 {
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("ABaseSportsCarPawn::OnHandbrakeReleased")));
 	GetVehicleMovement()->SetHandbrakeInput(false);
 }
 
@@ -304,55 +247,17 @@ inline void ABaseSportsCarPawn::CheckCarAlive()
 	}
 }
 
-void ABaseSportsCarPawn::AndroidControl()
-{
-	auto PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	
 
-	if (PlayerController)
-	{
-		FVector Tilt;
-		FVector RotationRate;
-		FVector Gravity;
-		FVector Acceleration;
-
-		// PlayerController->InputMotion(Tilt, RotationRate, Gravity, Acceleration);
-		// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
-		// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
-		// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
-		// GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
-		
-		PlayerController->GetInputMotionState(Tilt, RotationRate, Gravity, Acceleration);
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, Tilt.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Yellow, RotationRate.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, Gravity.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, Acceleration.ToString());
-	}
-}
 
 void ABaseSportsCarPawn::OnNitroPressed()
 {
-	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("OnNitroPressed"));
+	
 	GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorqueNitro);
-	// GetWheeledVehicleMovementComponent()->SetDragCoefficient(DragCoefficient);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorqueNitro, 0);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorqueNitro, 1);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorqueNitro, 2);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorqueNitro, 3);
-	// GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorqueNitro);
 }
 
 void ABaseSportsCarPawn::OnNitroReleased()
 {
-	// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("OnNitroReleased"));
 	GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorque);
-	// FVehicleEngineConfig config = FVehicleEngineConfig();
-
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorque, 0);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorque, 1);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorque, 2);
-	// GetWheeledVehicleMovementComponent()->SetDriveTorque(MaxTorque, 3);
-	// GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorque);
 }
 
 void ABaseSportsCarPawn::UpdateSpeedKPH()
@@ -417,6 +322,5 @@ void ABaseSportsCarPawn::ShowSpeedPerHundred()
 	SpeedPerHundred = FText::Format(
 		LOCTEXT("SpeedPerHundredFormat", "Until 100KPH is {0}"), FText::FromString(Timespan.ToString()));
 }
-
 
 #undef LOCTEXT_NAMESPACE
