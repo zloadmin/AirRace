@@ -23,6 +23,7 @@ public:
 	USplineComponent* Spline;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Spline")
 	UStaticMesh* StaticMesh;
+
 public:
 	UFUNCTION()
 	void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -39,19 +40,22 @@ public:
 	//
 	//
 	virtual void OnConstruction(const FTransform& Transform) override;
-	void Add(const FRoadActorParams &Params);
+	void Add(const FRoadActorParams& Params);
+
 private:
 	// Generation
-	void Generate(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
-	void GenerateSplinePoints(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
-	void GenerateStaticMesh(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
-	void GenerateTurn(const int StartIndex, const int FinishIndex, const FRoadActorParams &Params);
+	void Generate(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
+	// void Generate(const int StartIndex, const int FinishIndex, TArray<const FRoadActorParams>& Params);
+	void GenerateSplinePoints(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
+	void GenerateClimb(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
+	void GenerateStaticMesh(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
+	void GenerateTurn(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
 	void GenerateTriggerBox(const int FirstIndex, const int SecondIndex);
-	
+
 	void SetCurrentAngle();
 	double GetAngleOfSplineIndexes(const int FirstIndex, const int SecondIndex);
-	FVector GetCenterOfTurn(const int StartTurnIndex, const FRoadActorParams &Params);
-	
+	FVector GetCenterOfTurn(const int StartTurnIndex, const FRoadActorParams& Params);
+
 	// Spline 
 	int GetSplineLastIndex() const;
 	FVector GetFinish();

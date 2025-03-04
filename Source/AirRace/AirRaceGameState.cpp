@@ -3,13 +3,21 @@
 #include "AirRaceGameState.h"
 
 
+
 void AAirRaceGameState::InitRoad()
 {
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
 		Road = World->SpawnActor<ARoadActor>(ARoadActor::StaticClass(), FVector(), FRotator());
-		Road->Add(FRoadActorParams());
+		Road->Add(FRoadActorParams::SimpleClimb());
+		// Road->Add(FRoadActorParams::Random());
+		// Road->Add(FRoadActorParams::Random());
+		// Road->Add(FRoadActorParams::Random());
+		// Road->Add(FRoadActorParams::Random());
+		// Road->Add(FRoadActorParams::Random());
+		// Road->Add(FRoadActorParams::SimpleTurnLeft());
+		// Road->Add(FRoadActorSimpleTurnParams());
 		// Road->Add();
 		// Road->Add();
 	}
