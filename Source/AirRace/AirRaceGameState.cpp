@@ -9,8 +9,8 @@ void AAirRaceGameState::InitRoad()
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
-		Road = World->SpawnActor<ARoadActor>(ARoadActor::StaticClass(), FVector(), FRotator());
-		Road->Add(FRoadActorParams::SimpleClimb());
+		Road = World->SpawnActor<ARoadActor>(ARoadActor::StaticClass(), FVector(0.0f, 0.0f, 1000.0f), FRotator());
+		Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
 		// Road->Add(FRoadActorParams::Random());
 		// Road->Add(FRoadActorParams::Random());
 		// Road->Add(FRoadActorParams::Random());

@@ -52,6 +52,7 @@ void ARoadActor::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 	if (!StaticMesh) return;
 	FRoadActorParams Params = FRoadActorParams::SimpleStraight();
+
 	Generate(0, Params.GetSplinePoints(), Params);
 }
 
@@ -91,7 +92,7 @@ void ARoadActor::GenerateClimb(const int StartIndex, const int FinishIndex, cons
 			continue;
 		}
 
-		
+
 		// // Skip offset after 
 		// if (CurrentIndex - (FinishIndex + Params.GetSplinePointsOffset()) > 0)
 		// {
@@ -106,7 +107,6 @@ void ARoadActor::GenerateClimb(const int StartIndex, const int FinishIndex, cons
 		const FVector CurrentPoint = Spline->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
 		Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(CurrentPoint.X, CurrentPoint.Y, CurrentPoint.Z + (Params.GetClimbAngle() * Index)), ESplineCoordinateSpace::World, true);
 		Index++;
-		
 	}
 }
 
@@ -121,11 +121,14 @@ void ARoadActor::GenerateStaticMesh(const int StartIndex, const int FinishIndex,
 	UWorld* const World = GetWorld();
 	if (World == nullptr) return;
 
-	// const float RollStep = Roll > 0.0f ? Roll / Spline->GetNumberOfSplinePoints() : 0.0f;
+	// const float RollStep = Params.GetRoll() > 0.0f ? Params.GetRoll() / Spline->GetNumberOfSplinePoints() : 0.0f;
 	int StartIndexWithOffset = StartIndex == 0 ? StartIndex : StartIndex - 1;
+	int Index = 0;
 	for (int CurrentIndex = StartIndexWithOffset; CurrentIndex < FinishIndex + (Params.GetSplinePointsOffset() * 2);
 	     CurrentIndex++)
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("Current index %d. Is prefix %d"), CurrentIndex, IsOffsetSplineIndex(CurrentIndex, Params));
+
 		USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(
 			this, USplineMeshComponent::StaticClass());
 		SplineMeshComponent->SetStaticMesh(StaticMesh);
@@ -136,8 +139,7 @@ void ARoadActor::GenerateStaticMesh(const int StartIndex, const int FinishIndex,
 
 		FVector StartPoint = Spline->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
 		FVector EndPoint = Spline->GetLocationAtSplinePoint(CurrentIndex + 1, ESplineCoordinateSpace::World);
-		// UE_LOG(LogTemp, Warning, TEXT("%d - Start is %s. End is %s"), CurrentIndex, *StartPoint.ToString(),
-		//        *EndPoint.ToString());
+
 
 		const FVector StartTangent = Spline->GetTangentAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
 		const FVector EndTangent = Spline->GetTangentAtSplinePoint(CurrentIndex + 1, ESplineCoordinateSpace::World);
@@ -148,20 +150,52 @@ void ARoadActor::GenerateStaticMesh(const int StartIndex, const int FinishIndex,
 		// UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint is %s"), CurrentIndex, *SplinePoint.ToString());
 		//SplineMeshComponent->SetForwardAxis(ForwardAxis);
 
-
-		// TODO: disable rolling for first and last point
-		// TODO: make double roll
-		// SplineMeshComponent->SetStartRoll(RollStep * SplineCount);
-		// SplineMeshComponent->SetEndRoll(RollStep * SplineCount + RollStep);
+		GenerateStaticMeshRoll(Index, Params, SplineMeshComponent);
 
 		SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		++Index;
+	}
+}
+
+void ARoadActor::GenerateStaticMeshRoll(const int Index, const FRoadActorParams& Params, USplineMeshComponent* SplineMeshComponent)
+{
+	// TODO: make as another function GenerateRoll. 
+	// Roll linear type. first 0.0 and RollDegrees, Last RollDrees and zero
+	if (IsNotOffsetSplineIndex(Index, Params) && Params.HasRoll())
+	{
+		auto const [StartRollDegree, EndRollDegree] = GetRollDegreeByIndex(Index, Params);
+		UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint. Degree %f"), Index, StartRollDegree);
+		UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint. Degree %f"), Index, EndRollDegree);
+		SplineMeshComponent->SetStartRoll(FMath::DegreesToRadians(StartRollDegree));
+		SplineMeshComponent->SetEndRoll(FMath::DegreesToRadians(EndRollDegree));
+		// if (IsFirstNotOffsetSplineIndex(Index, Params))
+		// {
+		// 	// UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint. First"), Index);
+		// 	SplineMeshComponent->SetStartRoll(FMath::DegreesToRadians(0.0f));
+		// 	SplineMeshComponent->SetEndRoll(FMath::DegreesToRadians(Params.GetRoll()));
+		// 	return;
+		// }
+		// if (IsLastNotOffsetSplineIndex(Index, Params))
+		// {
+		// 	// UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint. Last"), Index);
+		// 	SplineMeshComponent->SetStartRoll(FMath::DegreesToRadians(Params.GetRoll()));
+		// 	SplineMeshComponent->SetEndRoll(FMath::DegreesToRadians(0.0f));
+		// 	return;
+		// }
+		// // UE_LOG(LogTemp, Warning, TEXT("%d - SplinePoint. Not First or Last"), Index);
+		// SplineMeshComponent->SetStartRoll(FMath::DegreesToRadians(Params.GetRoll()));
+		// SplineMeshComponent->SetEndRoll(FMath::DegreesToRadians(Params.GetRoll()));
+		// return;
+
+		// SplineMeshComponent->SetStartRoll(FMath::DegreesToRadians(Degree));
+		// SplineMeshComponent->SetEndRoll(FMath::DegreesToRadians(Degree));
 	}
 }
 
 void ARoadActor::GenerateTurn(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params)
 {
 	if (!Params.GetCircleRadius()) return;
-	
+
 	// 1 take startPoint
 	const FVector StartPointPos = Spline->GetLocationAtSplinePoint(StartIndex + Params.GetSplinePointsOffset(), ESplineCoordinateSpace::World);
 	// 2 add radius by
@@ -192,23 +226,33 @@ void ARoadActor::GenerateTurn(const int StartIndex, const int FinishIndex, const
 		{
 			continue;
 		}
+		const FVector CurrentPoint = Spline->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
 		// offset after - add points in same angle & skip
 		if (CurrentIndex - (FinishIndex + Params.GetSplinePointsOffset()) > 0)
 		{
-			double const AngleBeforeOffset = GetAngleOfSplineIndexes(Params.GetSplinePointsOffset() + FinishIndex - 1, Params.GetSplinePointsOffset() + FinishIndex);
-			const FVector PointBefore = Spline->GetLocationAtSplinePoint(CurrentIndex - 1, ESplineCoordinateSpace::World);
+			// GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red,FString::Printf(TEXT("Offset after %d"), CurrentIndex));
+			double AngleBeforeOffset = GetAngleOfSplineIndexes(Params.GetSplinePointsOffset() + FinishIndex - 1, Params.GetSplinePointsOffset() + FinishIndex);
+			if (Params.GetCircleAngleAfterRound() > 0)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleBeforeOffset before %f"), AngleBeforeOffset));
+				AngleBeforeOffset = FMath::RoundToDouble(AngleBeforeOffset / Params.GetCircleAngleAfterRound()) * Params.GetCircleAngleAfterRound();
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("AngleBeforeOffset after %f"), AngleBeforeOffset));
+			}
+
 			constexpr double Angle = 180.0f;
+			const FVector PointBefore = Spline->GetLocationAtSplinePoint(CurrentIndex - 1, ESplineCoordinateSpace::World);
 			const double X = PointBefore.X + Params.GetSplineDistanceBetweenPoints() * UKismetMathLibrary::Cos(AngleBeforeOffset * PI / Angle);
 			const double Y = PointBefore.Y + Params.GetSplineDistanceBetweenPoints() * UKismetMathLibrary::Sin(AngleBeforeOffset * PI / Angle);
-			Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, 0), ESplineCoordinateSpace::World, true);
+			Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, CurrentPoint.Z), ESplineCoordinateSpace::World, true); // TODO: change Z location
 			continue;
 		}
 
-		const double Degree = (CurrentAngle + (90.0f * Params.GetCircleTurnSide())) - (Params.GetCircleTurnSide() * Index) * Params.GetCircleDegreeStep();
+		const double DegreeStep = Params.GetCircleDegree() / (Params.GetSplinePoints());
+		const double Degree = (CurrentAngle + (90.0f * Params.GetCircleTurnSide())) - (Params.GetCircleTurnSide() * Index) * DegreeStep;
 		constexpr double Angle = 180.0f;
 		const double X = CenterOfRadius.X + Params.GetCircleRadius() * UKismetMathLibrary::Cos(Degree * PI / Angle);
 		const double Y = CenterOfRadius.Y + Params.GetCircleRadius() * UKismetMathLibrary::Sin(Degree * PI / Angle);
-		const FVector CurrentPoint = Spline->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+
 		Spline->SetLocationAtSplinePoint(CurrentIndex, FVector(X, Y, CurrentPoint.Z), ESplineCoordinateSpace::World, true);
 		Index++;
 	}
@@ -313,4 +357,138 @@ void ARoadActor::Generate(const int StartIndex, const int FinishIndex, const FRo
 	GenerateClimb(StartIndex, FinishIndex, Params);
 	GenerateStaticMesh(StartIndex, FinishIndex, Params);
 	GenerateTriggerBox(StartIndex, FinishIndex);
+}
+
+void ARoadActor::Generate(const int StartIndex, const int FinishIndex, TArray<const FRoadActorParams>& Params)
+{
+	int AddedIndex = 0;
+	for (FRoadActorParams Param : Params)
+	{
+		Generate(StartIndex + AddedIndex, FinishIndex + AddedIndex, Param);
+		AddedIndex = AddedIndex + Param.GetSplinePoints();
+	}
+}
+
+FORCEINLINE bool ARoadActor::IsNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params)
+{
+	return Index >= Params.GetSplinePointsOffset() && Index < (Params.GetSplinePointsOffset() + Params.GetSplinePoints());
+}
+
+FORCEINLINE bool ARoadActor::IsFirstNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params)
+{
+	return Params.GetSplinePointsOffset() == Index;
+}
+
+FORCEINLINE bool ARoadActor::IsLastNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params)
+{
+	return Params.GetSplinePointsOffset() + Params.GetSplinePoints() - 1 == Index;
+}
+
+FORCEINLINE bool ARoadActor::IsOffsetSplineIndex(const int Index, const FRoadActorParams& Params)
+{
+	return !IsNotOffsetSplineIndex(Index, Params);
+}
+
+TTuple<double, double> ARoadActor::GetRollDegreeByIndex(const int Index, const FRoadActorParams& Params)
+{
+	const int IndexWithoutOffset = Index - Params.GetSplinePointsOffset();
+	const int HalfOfSplines = Params.GetSplinePoints() / 2;
+	double DegreeStart = 0.0f;
+	double DegreeEnd = 0.0f;
+	const double DegreePerStep = Params.GetRoll() / HalfOfSplines;
+	const int IndexFromZero = IndexWithoutOffset - HalfOfSplines;
+	const int NegativeIndex = IndexWithoutOffset - (IndexFromZero * 2);
+	
+	if (Params.GetSplinePoints() % 2 == 0)
+	{
+		// First half
+		if (IndexWithoutOffset < HalfOfSplines)
+		{
+			DegreeStart = IndexWithoutOffset * DegreePerStep;
+			DegreeEnd = IndexWithoutOffset * DegreePerStep + DegreePerStep;
+		}
+		else if (IndexWithoutOffset >= HalfOfSplines)
+		{
+			DegreeStart = NegativeIndex * DegreePerStep;
+			DegreeEnd = NegativeIndex * DegreePerStep - DegreePerStep;
+		}
+		
+	} else
+	{
+		// First half
+		if (IndexWithoutOffset < HalfOfSplines)
+		{
+			DegreeStart = IndexWithoutOffset * DegreePerStep;
+			DegreeEnd = IndexWithoutOffset * DegreePerStep + DegreePerStep;
+		}
+		else if (IndexWithoutOffset > HalfOfSplines)
+		{
+			DegreeStart = NegativeIndex * DegreePerStep + DegreePerStep;
+			DegreeEnd = NegativeIndex * DegreePerStep;
+		}
+		else
+			// Center
+		{
+			DegreeStart = NegativeIndex * DegreePerStep;
+			DegreeEnd = NegativeIndex * DegreePerStep;
+		}
+	}
+
+
+	// if (IndexWithoutOffset < HalfOfSplines)
+	// const int HalfOfSplines = Params.GetSplinePoints() / 2;
+	// const double DegreePerStep = Params.GetRoll() / HalfOfSplines;
+	// const int IndexFromZero = IndexWithoutOffset - HalfOfSplines;
+	// const int NegativeIndex = IndexWithoutOffset - (IndexFromZero * 2);
+	//
+	// // if first half
+	// if (IndexWithoutOffset < HalfOfSplines)
+	// {
+	// 	const double StartRollDegree = DegreePerStep * IndexWithoutOffset;
+	// 	const double EndRollDegree =  DegreePerStep * IndexWithoutOffset + DegreePerStep;
+	// 	return TTuple<double, double>(StartRollDegree, EndRollDegree);
+	// }
+
+	//
+	// // const int HalfOfSplines = Params.GetSplinePoints() / 2;
+	// // const int IndexWithoutOffset = Index - Params.GetSplinePointsOffset();
+	//
+	// // const int IndexFromZero = IndexWithoutOffset - HalfOfSplines;
+	// // const int NegativeIndex = IndexWithoutOffset - (IndexFromZero * 2);
+	// // const int MultiplyIndex = IndexWithoutOffset < HalfOfSplines ? IndexWithoutOffset : NegativeIndex;
+	// // double DegreeStart = DegreePerStep * MultiplyIndex;
+	// const double Degree = DegreePerStep * IndexWithoutOffset;
+	// const int IndexWithoutOffset = (Index - Params.GetSplinePointsOffset()) * 2;
+	// const double DegreePerStep = Params.GetRoll() / (Params.GetSplinePoints() - 1);
+	// double DegreeStart;
+	// double DegreeEnd;
+	// const int IndexStart = IndexWithoutOffset;
+	// const int IndexEnd = IndexWithoutOffset + 1;
+	// const int IndexFromZero = IndexWithoutOffset - Params.GetSplinePoints();
+	// const int NegativeIndex = IndexWithoutOffset - (IndexFromZero * 2 + 1);
+	//
+	//
+	// if (IndexWithoutOffset < Params.GetSplinePoints())
+	// {
+	// 	// DegreeStart = (IndexStart * DegreePerStep) - DegreePerStep;
+	// 	DegreeStart = IndexStart;
+	// }
+	// else
+	// {
+	// 	// DegreeStart = (NegativeIndex * DegreePerStep) - DegreePerStep;
+	// 	DegreeStart = NegativeIndex;
+	// }
+	//
+	// if (IndexWithoutOffset + 1 < Params.GetSplinePoints())
+	// {
+	// 	// DegreeEnd = IndexEnd * DegreePerStep;
+	// 	DegreeEnd = IndexEnd;
+	// }
+	// else
+	// {
+	// 	// DegreeEnd = (NegativeIndex - 1) * DegreePerStep;
+	// 	DegreeEnd = NegativeIndex - 1;
+	// }
+
+	return TTuple<double, double>(DegreeStart, DegreeEnd);
 }

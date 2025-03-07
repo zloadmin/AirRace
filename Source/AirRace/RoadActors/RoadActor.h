@@ -42,13 +42,20 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void Add(const FRoadActorParams& Params);
 
+	static bool IsNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params);
+	static bool IsFirstNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params);
+	static bool IsLastNotOffsetSplineIndex(const int Index, const FRoadActorParams& Params);
+	static bool IsOffsetSplineIndex(const int Index, const FRoadActorParams& Params);
+	static TTuple<double, double> GetRollDegreeByIndex(const int Index, const FRoadActorParams& Params);
+
 private:
 	// Generation
 	void Generate(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
-	// void Generate(const int StartIndex, const int FinishIndex, TArray<const FRoadActorParams>& Params);
+	void Generate(const int StartIndex, const int FinishIndex, TArray<const FRoadActorParams>& Params);
 	void GenerateSplinePoints(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
 	void GenerateClimb(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
 	void GenerateStaticMesh(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
+	void GenerateStaticMeshRoll(const int Index, const FRoadActorParams& Params, USplineMeshComponent* SplineMeshComponent);
 	void GenerateTurn(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
 	void GenerateTriggerBox(const int FirstIndex, const int SecondIndex);
 

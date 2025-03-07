@@ -29,39 +29,60 @@ struct AIRRACE_API FRoadActorParams
 
 private:
 	// Splines 
-	int SplinePoints = 5;
+	int SplinePoints = 6;
 	int SplinePointsOffset = 2;
 	int SplineDistanceBetweenPoints = 1000;
 
 	// Circle 
 	double CircleRadius = 0.0f;
 	double CircleTurnSide = TURN_LEFT;
-	double CircleDegreeStep = 0.0f;
+	double CircleDegree = 0.0f;
+	int CircleAngleAfterRound = 0;
 
+	// Roll
+	double Roll = 0.0f;
+
+	// enum ERollType
+	// {
+	// 	None, Center
+	// };
+
+private:
 	// Climb
 	double ClimbAngle = 0.0f;
 
 
 	void SetCircleRadius(const double& NewCircleRadius);
 	void SetCircleTurnSide(const double& NewCircleTurnSide);
-	void SetCircleDegreeStep(const double& NewCircleDegreeStep);
+	void SetCircleDegree(const double& NewCircleDegree);
 	void SetClimbAngle(const double& NewClimbAngle);
+	void SetSplinePoints(const int& NewSplinePoints);
+	void SetCircleAngleAfterRound(const int& NewCircleAngleAfterRound);
+	void SetRoll(const double& NewRoll);
 
 public:
 	// Splines 
 	int GetSplinePoints() const;
+	// int GetSplinePointsWithoutOffset() const;
 	int GetSplinePointsOffset() const;
 	int GetSplineDistanceBetweenPoints() const;
 	double GetCircleRadius() const;
 	double GetCircleTurnSide() const;
-	double GetCircleDegreeStep() const;
+	double GetCircleDegree() const;
 	double GetClimbAngle() const;
+	double GetRoll() const;
+	bool HasRoll() const;
+	int GetCircleAngleAfterRound() const;
 
 public:
 	// Types
 	static FRoadActorParams SimpleStraight();
+	static FRoadActorParams SimpleStraightWithRoll();
+	static FRoadActorParams StraightWithRoll();
 	static FRoadActorParams SimpleClimb();
 	static FRoadActorParams SimpleTurn();
+	static FRoadActorParams TurnOneEightZeroDegrees();
+	static FRoadActorParams TurnNineZeroDegrees();
 	static FRoadActorParams SimpleTurnLeft();
 	static FRoadActorParams SimpleTurnRight();
 	static FRoadActorParams SharplyTurnRight();
