@@ -4,6 +4,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "AirRaceGameState.h"
 #include "AirRaceHUD.h"
+#include "AI/VehicleAIController.h"
 #include "Cars/BaseSportsCarPawn.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -13,6 +14,8 @@ AAirRaceGameMode::AAirRaceGameMode()
 	DefaultPawnClass = ABaseSportsCarPawn::StaticClass();
 	GameStateClass = AAirRaceGameState::StaticClass();
 	HUDClass = AAirRaceHUD::StaticClass();
+	// PlayerControllerClass = AVehicleAIController::StaticClass();
+	
 }
 
 void AAirRaceGameMode::GameOver()

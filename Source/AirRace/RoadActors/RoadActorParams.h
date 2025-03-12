@@ -82,6 +82,7 @@ public:
 	static FRoadActorParams SimpleClimb();
 	static FRoadActorParams SimpleTurn();
 	static FRoadActorParams TurnOneEightZeroDegrees();
+	static FRoadActorParams TurnMinusOneEightZeroDegrees();
 	static FRoadActorParams TurnNineZeroDegrees();
 	static FRoadActorParams SimpleTurnLeft();
 	static FRoadActorParams SimpleTurnRight();

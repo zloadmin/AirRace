@@ -25,6 +25,8 @@ public:
 	UStaticMesh* StaticMesh;
 
 public:
+	bool IsExists() { return bIsExists; };
+	
 	UFUNCTION()
 	void OnOverlapStartBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
@@ -48,6 +50,8 @@ public:
 	static bool IsOffsetSplineIndex(const int Index, const FRoadActorParams& Params);
 	static TTuple<double, double> GetRollDegreeByIndex(const int Index, const FRoadActorParams& Params);
 
+	
+
 private:
 	// Generation
 	void Generate(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params);
@@ -67,4 +71,6 @@ private:
 	int GetSplineLastIndex() const;
 	FVector GetFinish();
 	FRotator GetRotation();
+
+	bool bIsExists = false;
 };

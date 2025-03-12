@@ -3,14 +3,29 @@
 #include "AirRaceGameState.h"
 
 
-
 void AAirRaceGameState::InitRoad()
 {
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
 		Road = World->SpawnActor<ARoadActor>(ARoadActor::StaticClass(), FVector(0.0f, 0.0f, 1000.0f), FRotator());
-		Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
+
+		// Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
+
+		
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		Road->Add(FRoadActorParams::SimpleClimb());
+		Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		Road->Add(FRoadActorParams::TurnMinusOneEightZeroDegrees());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
+		// Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::SimpleStraight());
+		// Road->Add(FRoadActorParams::SimpleStraight());
 		// Road->Add(FRoadActorParams::Random());
 		// Road->Add(FRoadActorParams::Random());
 		// Road->Add(FRoadActorParams::Random());
@@ -23,6 +38,16 @@ void AAirRaceGameState::InitRoad()
 	}
 }
 
+
+FVector AAirRaceGameState::GetRoadSplinePointLocation(const int& SplinePointIndex)
+{
+	return Road->Spline->GetLocationAtSplinePoint(SplinePointIndex, ESplineCoordinateSpace::World);
+}
+
+ARoadActor* AAirRaceGameState::GetRoadActor()
+{
+	return Road;
+}
 
 void AAirRaceGameState::BeginPlay()
 {

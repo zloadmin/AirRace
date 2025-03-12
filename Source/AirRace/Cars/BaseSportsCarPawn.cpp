@@ -6,6 +6,8 @@
 #include "./../AirRaceGameMode.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
+#include "FunctionalUIScreenshotTest.h"
+#include "AirRace/AI/VehicleAIController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -24,12 +26,13 @@ void ABaseSportsCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABaseSportsCarPawn::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABaseSportsCarPawn::MoveRight);
-	
+
+	PlayerInputComponent->BindAction("Brake", IE_Pressed, this, &ABaseSportsCarPawn::OnBrakePressed);
+	PlayerInputComponent->BindAction("Brake", IE_Released, this, &ABaseSportsCarPawn::OnBrakeReleased);
 	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ABaseSportsCarPawn::OnHandbrakePressed);
 	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ABaseSportsCarPawn::OnHandbrakeReleased);
 	PlayerInputComponent->BindAction("Nitro", IE_Pressed, this, &ABaseSportsCarPawn::OnNitroPressed);
 	PlayerInputComponent->BindAction("Nitro", IE_Released, this, &ABaseSportsCarPawn::OnNitroReleased);
-	
 }
 
 void ABaseSportsCarPawn::Tick(float Delta)
@@ -44,6 +47,7 @@ void ABaseSportsCarPawn::Tick(float Delta)
 	UpdateHUDStrings();
 	SetupHUD();
 	CheckCarAlive();
+	ToggleIsFlying();
 }
 
 void ABaseSportsCarPawn::BeginPlay()
@@ -122,6 +126,20 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 		WheelBRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
 		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBRConfig);
 	}
+	// Setup wheels
+	for (UChaosVehicleWheel* Wheel : WheeledVehicleMovementComponent->Wheels)
+	{
+		if (Wheel)
+		{
+			Wheel->CorneringStiffness = 100000.0f; // Very high stiffness
+			Wheel->SuspensionDampingRatio = 5000.0f; // High damping to reduce bounce
+			// Wheel->SuspensionCompressionDamping = 5000.0f; // Quick response to compression
+			// Wheel->SuspensionRelaxationDamping = 5000.0f; // Quick return to position
+			Wheel->SuspensionMaxRaise = 1.0f; // Minimal lift
+			Wheel->SuspensionMaxDrop = 1.0f; // Minimal drop
+			// Wheel->SuspensionLength = 10.0f; // Very short travel range
+		}
+	}
 	// Mechanical Setup
 	WheeledVehicleMovementComponent->bMechanicalSimEnabled = true;
 
@@ -171,21 +189,40 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	SpringArm->SetWorldRotation(FRotator(0.0f, 0.0f, 0.0f));
 	SpringArm->SocketOffset = FVector(0.0f, 0.0f, 150.0f);
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 650.0f;
+	SpringArm->TargetArmLength = 550.0f;  // Default distance
+	// SpringArm->CameraLagMaxDistance = 650.0f;
 	SpringArm->bEnableCameraLag = false;
-	SpringArm->bEnableCameraRotationLag = false;
-	SpringArm->bInheritPitch = true;
+	SpringArm->CameraLagSpeed = 5.0f;
+	SpringArm->bEnableCameraRotationLag = true;
+	SpringArm->CameraRotationLagSpeed = 5.0f;
+	SpringArm->bUsePawnControlRotation = false;  // Free movement
+	SpringArm->bInheritPitch = false;
+	SpringArm->bInheritRoll = false;
 	SpringArm->bInheritYaw = true;
-	SpringArm->bInheritRoll = true;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(SpringArm);
+
+	// SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	// SpringArm->SetRelativeLocation(FVector(0.0f, 0.0f, 75.0f));
+	// SpringArm->SetWorldRotation(FRotator(0.0f, 0.0f, 0.0f));
+	// SpringArm->SocketOffset = FVector(0.0f, 0.0f, 150.0f);
+	// SpringArm->SetupAttachment(RootComponent);
+	// SpringArm->TargetArmLength = 650.0f;
+	// SpringArm->bEnableCameraLag = false;
+	// SpringArm->bEnableCameraRotationLag = false;
+	// SpringArm->bInheritPitch = true;
+	// SpringArm->bInheritYaw = true;
+	// SpringArm->bInheritRoll = true;
 
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
-	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	Camera->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-	Camera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
-	Camera->bUsePawnControlRotation = false;
-	Camera->ProjectionMode = ECameraProjectionMode::Perspective;
-	Camera->FieldOfView = 90.f;
+	// Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
+	// Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	// Camera->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	// Camera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+	// Camera->bUsePawnControlRotation = false;
+	// Camera->ProjectionMode = ECameraProjectionMode::Perspective;
+	// Camera->FieldOfView = 90.f;
 
 
 	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCue(
@@ -195,6 +232,19 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	EngineSoundComponent->SetupAttachment(GetMesh());
 
 	SpeedPerHundred = FText::FromString("NO INFO");
+
+	AIControllerClass = AVehicleAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+}
+
+AController* ABaseSportsCarPawn::GetController() const
+{
+	return Cast<AController>(AVehicleAIController::StaticClass());
+}
+
+AController* ABaseSportsCarPawn::GetDefaultController() const
+{
+	return Cast<AController>(AVehicleAIController::StaticClass());
 }
 
 UChaosWheeledVehicleMovementComponent* ABaseSportsCarPawn::GetWheeledVehicleMovementComponent()
@@ -204,15 +254,36 @@ UChaosWheeledVehicleMovementComponent* ABaseSportsCarPawn::GetWheeledVehicleMove
 
 void ABaseSportsCarPawn::MoveForward(float Val)
 {
-	GetVehicleMovement()->SetThrottleInput(Val);
+	if (bIsFlying)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Start flying")));
+		// Get car's mesh and physics body
+		UPrimitiveComponent* MeshComp = Cast<UPrimitiveComponent>(GetRootComponent());
+		if (!MeshComp) return;
+		MeshComp->AddTorqueInRadians(FVector(0.0f, Val * 0.5f, 0.0f), NAME_None, true);
+	}
+	else
+	{
+		GetVehicleMovement()->SetThrottleInput(Val);
+	}
 }
 
 void ABaseSportsCarPawn::MoveRight(float Val)
 {
-	GetVehicleMovement()->SetSteeringInput(Val);
+	if (bIsFlying)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Start flying")));
+		// Get car's mesh and physics body
+		UPrimitiveComponent* MeshComp = Cast<UPrimitiveComponent>(GetRootComponent());
+		if (!MeshComp) return;
+		
+		MeshComp->AddTorqueInRadians(FVector(-Val * 0.5f, 0.0f * Val, 0.0f), NAME_None, true);
+	}
+	else
+	{
+		GetVehicleMovement()->SetSteeringInput(Val);
+	}
 }
-
-
 
 
 void ABaseSportsCarPawn::OnHandbrakePressed()
@@ -223,6 +294,16 @@ void ABaseSportsCarPawn::OnHandbrakePressed()
 void ABaseSportsCarPawn::OnHandbrakeReleased()
 {
 	GetVehicleMovement()->SetHandbrakeInput(false);
+}
+
+void ABaseSportsCarPawn::OnBrakePressed()
+{
+	GetVehicleMovement()->SetBrakeInput(1.0f);
+}
+
+void ABaseSportsCarPawn::OnBrakeReleased()
+{
+	GetVehicleMovement()->SetBrakeInput(0.0f);
 }
 
 void ABaseSportsCarPawn::SetupHUD()
@@ -248,16 +329,31 @@ inline void ABaseSportsCarPawn::CheckCarAlive()
 }
 
 
-
 void ABaseSportsCarPawn::OnNitroPressed()
 {
-	
 	GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorqueNitro);
 }
 
 void ABaseSportsCarPawn::OnNitroReleased()
 {
 	GetWheeledVehicleMovementComponent()->SetMaxEngineTorque(MaxTorque);
+}
+
+bool ABaseSportsCarPawn::IsFlying()
+{
+	if (WheeledVehicleMovementComponent)
+	{
+		int32 NumWheels = WheeledVehicleMovementComponent->Wheels.Num();
+		for (int32 i = 0; i < NumWheels; i++)
+		{
+			if (WheeledVehicleMovementComponent->Wheels[i]->IsInAir() == false)
+			{
+				return false; // At least one wheel is on the ground
+			}
+		}
+		return true; // All wheels are in the air
+	}
+	return false; // No movement component found
 }
 
 void ABaseSportsCarPawn::UpdateSpeedKPH()
@@ -303,6 +399,32 @@ void ABaseSportsCarPawn::ResetSpeedPerHundred()
 {
 	bSpeedPerHundredStarted = false;
 	bSpeedPerHundredFinished = false;
+}
+
+void ABaseSportsCarPawn::ToggleIsFlying()
+{
+	bIsFlying = IsFlying();
+	// if (!bIsFlying)
+	// {
+	if (IsFlying())
+	{
+		// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Start flying")));
+		// // Get car's mesh and physics body
+		// UPrimitiveComponent* MeshComp = Cast<UPrimitiveComponent>(GetRootComponent());
+		// if (!MeshComp) return;
+		//
+		// // Calculate roll torque
+		// FVector Torque = FVector(0.0f, 0.0f, 0.0f);
+		// float RollStrength = 500000.0f; // Adjust this value for more/less rolling
+		// Torque.X = 1.0f * RollStrength;  // Roll around X-axis
+		// // Apply torque
+		// MeshComp->AddTorqueInRadians(Torque, NAME_None, true);
+
+		// GetVehicleMovement()->SetYawInput(1.0f);
+		// GetVehicleMovement()->SetRollInput(1.0f);
+		// GetVehicleMovement()->SetPitchInput(1.0f);
+	}
+	// }	
 }
 
 

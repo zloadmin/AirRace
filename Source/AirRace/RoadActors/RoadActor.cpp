@@ -54,6 +54,7 @@ void ARoadActor::OnConstruction(const FTransform& Transform)
 	FRoadActorParams Params = FRoadActorParams::SimpleStraight();
 
 	Generate(0, Params.GetSplinePoints(), Params);
+	bIsExists = true;
 }
 
 void ARoadActor::GenerateSplinePoints(const int StartIndex, const int FinishIndex, const FRoadActorParams& Params)

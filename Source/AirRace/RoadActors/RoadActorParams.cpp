@@ -116,7 +116,9 @@ FRoadActorParams FRoadActorParams::StraightWithRoll()
 FRoadActorParams FRoadActorParams::SimpleClimb()
 {
 	FRoadActorParams SimpleClimb;
-	SimpleClimb.SetClimbAngle(100);
+	SimpleClimb.SetClimbAngle(200);
+	SimpleClimb.SetSplinePoints(4);
+	
 	return SimpleClimb;
 }
 
@@ -137,6 +139,18 @@ FRoadActorParams FRoadActorParams::TurnOneEightZeroDegrees()
 	TurnOneEightZeroDegrees.SetCircleDegree(180.0f);
 	TurnOneEightZeroDegrees.SetCircleAngleAfterRound(30);
 	TurnOneEightZeroDegrees.SetRoll(-25.0f);
+	return TurnOneEightZeroDegrees;
+}
+
+FRoadActorParams FRoadActorParams::TurnMinusOneEightZeroDegrees()
+{
+	FRoadActorParams TurnOneEightZeroDegrees;
+	TurnOneEightZeroDegrees.SetSplinePoints(100);
+	TurnOneEightZeroDegrees.SetCircleRadius(10000.0f);
+	TurnOneEightZeroDegrees.SetCircleDegree(180.0f);
+	TurnOneEightZeroDegrees.SetCircleTurnSide(TURN_RIGHT);
+	TurnOneEightZeroDegrees.SetCircleAngleAfterRound(30);
+	TurnOneEightZeroDegrees.SetRoll(25.0f);
 	return TurnOneEightZeroDegrees;
 }
 

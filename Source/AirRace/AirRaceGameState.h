@@ -15,9 +15,14 @@ class AIRRACE_API AAirRaceGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
+public:
+	FVector GetRoadSplinePointLocation(const int& SplinePointIndex);
+	ARoadActor* GetRoadActor();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
 private:
 	void InitRoad();
 	ARoadActor* Road;

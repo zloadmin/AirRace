@@ -26,6 +26,9 @@ class AIRRACE_API ABaseSportsCarPawn : public AWheeledVehiclePawn
 
 public:
 	ABaseSportsCarPawn();
+	AController* GetController() const;
+	AController* GetDefaultController() const;
+	
 
 public:
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -50,6 +53,10 @@ public:
 	void OnHandbrakePressed();
 	/** Handle handbrake released */
 	void OnHandbrakeReleased();
+	/** Handle brake pressed */
+	void OnBrakePressed();
+	/** Handle brake released */
+	void OnBrakeReleased();
 	/** Setup the strings used on the hud */
 	void SetupHUD();
 	/** Update Hub string data */
@@ -69,6 +76,8 @@ public:
 	FText SpeedPerHundred;
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* InCarSpeed;
+
+	bool IsFlying();
 private:
 	void UpdateSpeedKPH();
 	void ProcessSpeedPerHundred();
@@ -76,6 +85,7 @@ private:
 	void UpdateSpeedPerHundredFinish();
 	void ShowSpeedPerHundred();
 	void ResetSpeedPerHundred();
+	void ToggleIsFlying();
 private :
 	bool bIsNitroEnable = false;
 	float MaxTorque = 750.0f; 
@@ -86,6 +96,8 @@ private :
 	bool bSpeedPerHundredFinished = false;
 	FDateTime SpeedPerHundredStartTime;
 	FDateTime SpeedPerHundredFinishTime;
+
+	bool bIsFlying = false;
 };
 
 
