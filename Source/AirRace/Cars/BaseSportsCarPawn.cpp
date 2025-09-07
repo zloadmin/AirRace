@@ -13,7 +13,7 @@
 #include "Components/TextRenderComponent.h"
 #include "Sound/SoundCue.h"
 #include "Misc/DateTime.h"
-
+#include "CarSettings.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -73,6 +73,12 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 		GetMesh()->SetAnimClass(AnimBPClass.Object->GeneratedClass);
 	}
 
+	// Settings = FCarSettings(1);
+	// Settings->SetLevel(10);
+	// Settings->SetLevel()
+	WheeledVehicleMovementComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
+
+	InitCarSettings();
 	// Setup friction materials
 	// static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> SlipperyMat(TEXT("/Game/VehicleAdv/PhysicsMaterials/Slippery.Slippery"));
 	// SlipperyMaterial = SlipperyMat.Object;
@@ -80,104 +86,11 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	// static ConstructorHelpers::FObjectFinder<UPhysicalMaterial> NonSlipperyMat(TEXT("/Game/VehicleAdv/PhysicsMaterials/NonSlippery.NonSlippery"));
 	// NonSlipperyMaterial = NonSlipperyMat.Object;
 
-	WheeledVehicleMovementComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
-	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, FString::Printf(TEXT("Wheels %d"), Vehicle->Wheels.Num()));
+
 	// Wheels/Tyres
 
-	static ConstructorHelpers::FObjectFinder<UBlueprint> WheelsFront(
-		TEXT(
-			"/Script/Engine.Blueprint'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_WheelsFront.SportsCar_WheelsFront'"));
-
-	static ConstructorHelpers::FObjectFinder<UBlueprint> WheelsRear(
-		TEXT(
-			"/Script/Engine.Blueprint'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_WheelsRear.SportsCar_WheelsRear'"));
 	// // Setup the wheels ???
 
-
-	// Wheel setup
-	WheeledVehicleMovementComponent->bSuspensionEnabled = true;
-	WheeledVehicleMovementComponent->bWheelFrictionEnabled = true;
-	WheeledVehicleMovementComponent->bLegacyWheelFrictionPosition = true;
-
-	// Wheel setups
-	if (WheelsFront.Succeeded() && WheelsRear.Succeeded())
-	{
-		FChaosWheelSetup WheelFlConfig;
-		WheelFlConfig.BoneName = FName("Phys_Wheel_FL");
-		WheelFlConfig.WheelClass = WheelsFront.Object->GeneratedClass;
-		WheelFlConfig.AdditionalOffset = FVector(0.f, 0.0f, 0.f);
-		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFlConfig);
-
-		FChaosWheelSetup WheelFRConfig;
-		WheelFRConfig.BoneName = FName("Phys_Wheel_FR");
-		WheelFRConfig.WheelClass = WheelsFront.Object->GeneratedClass;
-		WheelFRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFRConfig);
-
-		FChaosWheelSetup WheelBLConfig;
-		WheelBLConfig.BoneName = FName("Phys_Wheel_BL");
-		WheelBLConfig.WheelClass = WheelsRear.Object->GeneratedClass;
-		WheelBLConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBLConfig);
-
-		FChaosWheelSetup WheelBRConfig;
-		WheelBRConfig.BoneName = FName("Phys_Wheel_BR");
-		WheelBRConfig.WheelClass = WheelsRear.Object->GeneratedClass;
-		WheelBRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
-		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBRConfig);
-	}
-	// Setup wheels
-	for (UChaosVehicleWheel* Wheel : WheeledVehicleMovementComponent->Wheels)
-	{
-		if (Wheel)
-		{
-			Wheel->CorneringStiffness = 100000.0f; // Very high stiffness
-			Wheel->SuspensionDampingRatio = 5000.0f; // High damping to reduce bounce
-			// Wheel->SuspensionCompressionDamping = 5000.0f; // Quick response to compression
-			// Wheel->SuspensionRelaxationDamping = 5000.0f; // Quick return to position
-			Wheel->SuspensionMaxRaise = 1.0f; // Minimal lift
-			Wheel->SuspensionMaxDrop = 1.0f; // Minimal drop
-			// Wheel->SuspensionLength = 10.0f; // Very short travel range
-		}
-	}
-	// Mechanical Setup
-	WheeledVehicleMovementComponent->bMechanicalSimEnabled = true;
-
-	// Engine Setup
-	static ConstructorHelpers::FObjectFinder<UCurveFloat> TorqueCurve(
-		TEXT(
-			"/Script/Engine.CurveFloat'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_TorqueCurve.SportsCar_TorqueCurve'"));
-	if (TorqueCurve.Succeeded())
-	{
-		WheeledVehicleMovementComponent->EngineSetup.TorqueCurve.ExternalCurve = TorqueCurve.Object;
-	}
-	WheeledVehicleMovementComponent->EngineSetup.MaxTorque = MaxTorque;
-	WheeledVehicleMovementComponent->EngineSetup.MaxRPM = 7000.0f;
-	WheeledVehicleMovementComponent->EngineSetup.EngineIdleRPM = 900.0f;
-	WheeledVehicleMovementComponent->EngineSetup.EngineBrakeEffect = 0.2f;
-	WheeledVehicleMovementComponent->EngineSetup.EngineRevUpMOI = 5.0f;
-	WheeledVehicleMovementComponent->EngineSetup.EngineRevDownRate = 600.0f;
-
-	// Differential Setup
-	WheeledVehicleMovementComponent->DifferentialSetup.DifferentialType = EVehicleDifferential::RearWheelDrive;
-	WheeledVehicleMovementComponent->DifferentialSetup.FrontRearSplit = 0.5f;
-
-	// Transmission Setup
-	WheeledVehicleMovementComponent->TransmissionSetup.bUseAutomaticGears = true;
-	WheeledVehicleMovementComponent->TransmissionSetup.bUseAutoReverse = true;
-	WheeledVehicleMovementComponent->TransmissionSetup.FinalRatio = 2.81f;
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Empty();
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(4.25f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(2.52f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.66f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.22f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.0f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Empty();
-	WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Add(4.04f);
-	WheeledVehicleMovementComponent->TransmissionSetup.ChangeUpRPM = 6000.0f;
-	WheeledVehicleMovementComponent->TransmissionSetup.ChangeDownRPM = 2000.0f;
-	WheeledVehicleMovementComponent->TransmissionSetup.GearChangeTime = 0.2f;
-	WheeledVehicleMovementComponent->TransmissionSetup.TransmissionEfficiency = 0.9f;
 
 	// Vehicle Setup
 	WheeledVehicleMovementComponent->ChassisHeight = 144.0f;
@@ -189,13 +102,13 @@ ABaseSportsCarPawn::ABaseSportsCarPawn()
 	SpringArm->SetWorldRotation(FRotator(0.0f, 0.0f, 0.0f));
 	SpringArm->SocketOffset = FVector(0.0f, 0.0f, 150.0f);
 	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 550.0f;  // Default distance
+	SpringArm->TargetArmLength = 550.0f; // Default distance
 	// SpringArm->CameraLagMaxDistance = 650.0f;
 	SpringArm->bEnableCameraLag = false;
 	SpringArm->CameraLagSpeed = 5.0f;
 	SpringArm->bEnableCameraRotationLag = true;
 	SpringArm->CameraRotationLagSpeed = 5.0f;
-	SpringArm->bUsePawnControlRotation = false;  // Free movement
+	SpringArm->bUsePawnControlRotation = false; // Free movement
 	SpringArm->bInheritPitch = false;
 	SpringArm->bInheritRoll = false;
 	SpringArm->bInheritYaw = true;
@@ -247,6 +160,194 @@ AController* ABaseSportsCarPawn::GetDefaultController() const
 	return Cast<AController>(AVehicleAIController::StaticClass());
 }
 
+void ABaseSportsCarPawn::InitCarSettings()
+{
+	InitWheels();
+	InitWheelSettings();
+	InitMechanicalSettings();
+	InitEngineSettings();
+	InitDifferentialSettings();
+}
+
+void ABaseSportsCarPawn::InitWheels()
+{
+	static ConstructorHelpers::FObjectFinder<UBlueprint> WheelsFront(
+		TEXT(
+			"/Script/Engine.Blueprint'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_WheelsFront.SportsCar_WheelsFront'"));
+
+	static ConstructorHelpers::FObjectFinder<UBlueprint> WheelsRear(
+		TEXT(
+			"/Script/Engine.Blueprint'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_WheelsRear.SportsCar_WheelsRear'"));
+
+	UChaosVehicleWheel FrontWheel;
+	FrontWheel.WheelRadius = Settings.FrontWheelRadius;
+	FrontWheel.WheelWidth = Settings.FrontWheelWidth;
+	FrontWheel.FrictionForceMultiplier = Settings.FrontFrictionForceMultiplier;
+	FrontWheel.MaxSteerAngle = Settings.FrontMaxSteerAngle;
+	FrontWheel.CorneringStiffness = Settings.FrontCorneringStiffness;
+	
+	if (WheelsFront.Succeeded() && WheelsRear.Succeeded())
+	{
+		FChaosWheelSetup WheelFlConfig;
+		WheelFlConfig.BoneName = FName("Phys_Wheel_FL");
+		WheelFlConfig.WheelClass = WheelsFront.Object->GeneratedClass;
+		WheelFlConfig.AdditionalOffset = FVector(0.f, 0.0f, 0.f);
+		// WheelFlConfig.WheelClass = FrontWheel.GetClass();
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFlConfig);
+
+		FChaosWheelSetup WheelFRConfig;
+		WheelFRConfig.BoneName = FName("Phys_Wheel_FR");
+		WheelFRConfig.WheelClass = WheelsFront.Object->GeneratedClass;
+		WheelFRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelFRConfig);
+
+		FChaosWheelSetup WheelBLConfig;
+		WheelBLConfig.BoneName = FName("Phys_Wheel_BL");
+		WheelBLConfig.WheelClass = WheelsRear.Object->GeneratedClass;
+		WheelBLConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBLConfig);
+
+		FChaosWheelSetup WheelBRConfig;
+		WheelBRConfig.BoneName = FName("Phys_Wheel_BR");
+		WheelBRConfig.WheelClass = WheelsRear.Object->GeneratedClass;
+		WheelBRConfig.AdditionalOffset = FVector(0.f, 0.f, 0.f);
+		WheeledVehicleMovementComponent->WheelSetups.Add(WheelBRConfig);
+	}
+}
+
+void ABaseSportsCarPawn::InitSuspensionSettings()
+{
+	for (const UChaosVehicleWheel* Wheel : WheeledVehicleMovementComponent->Wheels)
+	{
+		WheeledVehicleMovementComponent->SetSuspensionParams(
+			Settings.SuspensionRate,
+			Settings.SuspensionDamping,
+			Settings.SuspensionPreload,
+			Settings.SuspensionMaxRaise,
+			Settings.SuspensionMaxDrop,
+			Wheel->WheelIndex
+		);
+	}
+}
+
+void ABaseSportsCarPawn::IinitFrontWheel()
+{
+	
+	// UChaosVehicleWheel FrontWheel;
+	// FrontWheel.WheelRadius = Settings.FrontWheelRadius;
+	// FrontWheel.WheelWidth = Settings.FrontWheelWidth;
+	// FrontWheel.FrictionForceMultiplier = Settings.FrontFrictionForceMultiplier;
+	// FrontWheel.MaxSteerAngle = Settings.FrontMaxSteerAngle;
+	// FrontWheel.CorneringStiffness = Settings.FrontCorneringStiffness;
+	//
+	//
+	// WheeledVehicleMovementComponent->SetWheelRadius(0, Settings.FrontWheelRadius);
+	// WheeledVehicleMovementComponent->SetWheelRadius(1, Settings.FrontWheelRadius);
+	//
+	//
+	// WheeledVehicleMovementComponent->SetWheelClass(1, FrontWheel);
+}
+
+void ABaseSportsCarPawn::InitWheelSettings()
+{
+	// Wheel setup
+	WheeledVehicleMovementComponent->bSuspensionEnabled = true;
+	WheeledVehicleMovementComponent->bWheelFrictionEnabled = true;
+	WheeledVehicleMovementComponent->bLegacyWheelFrictionPosition = true;
+
+
+	// Setup wheels
+	for (UChaosVehicleWheel* Wheel : WheeledVehicleMovementComponent->Wheels)
+	{
+		if (Wheel)
+		{
+			Wheel->CorneringStiffness = 100000.0f; // Very high stiffness
+			Wheel->SuspensionDampingRatio = 5000.0f; // High damping to reduce bounce
+			// Wheel->SuspensionCompressionDamping = 5000.0f; // Quick response to compression
+			// Wheel->SuspensionRelaxationDamping = 5000.0f; // Quick return to position
+			Wheel->SuspensionMaxRaise = 1.0f; // Minimal lift
+			Wheel->SuspensionMaxDrop = 1.0f; // Minimal drop
+			// Wheel->SuspensionLength = 10.0f; // Very short travel range
+		}
+	}
+}
+
+void ABaseSportsCarPawn::InitMechanicalSettings()
+{
+	// Mechanical Setup
+	WheeledVehicleMovementComponent->bMechanicalSimEnabled = true;
+}
+
+void ABaseSportsCarPawn::InitEngineSettings()
+{
+	// Engine Setup
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> TorqueCurve(
+		TEXT(
+			"/Script/Engine.CurveFloat'/Game/VehicleTemplate/Blueprints/SportsCar/SportsCar_TorqueCurve.SportsCar_TorqueCurve'"));
+	if (TorqueCurve.Succeeded())
+	{
+		WheeledVehicleMovementComponent->EngineSetup.TorqueCurve.ExternalCurve = TorqueCurve.Object;
+	}
+	WheeledVehicleMovementComponent->EngineSetup.MaxRPM = Settings.MaxRPM;
+	WheeledVehicleMovementComponent->EngineSetup.MaxTorque = Settings.MaxTorque;
+
+
+	WheeledVehicleMovementComponent->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
+	for (FTorqueCurveKeys& TorqueCurveKey : Settings.TorqueCurveKeys)
+	{
+		WheeledVehicleMovementComponent->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(TorqueCurveKey.InTime, TorqueCurveKey.InValue);
+	}
+
+
+	// WheeledVehicleMovementComponent->EngineSetup.EngineIdleRPM = 900.0f;
+	// WheeledVehicleMovementComponent->EngineSetup.EngineBrakeEffect = 0.2f;
+	// WheeledVehicleMovementComponent->EngineSetup.EngineRevUpMOI = 5.0f;
+	// WheeledVehicleMovementComponent->EngineSetup.EngineRevDownRate = 600.0f;
+}
+
+void ABaseSportsCarPawn::InitDifferentialSettings()
+{
+	// Differential Setup
+	WheeledVehicleMovementComponent->DifferentialSetup.DifferentialType = Settings.DifferentialType;
+	WheeledVehicleMovementComponent->DifferentialSetup.FrontRearSplit = Settings.FrontRearSplit;
+}
+
+void ABaseSportsCarPawn::InitTransmissionSettings()
+{
+	// Transmission Setup
+	WheeledVehicleMovementComponent->TransmissionSetup.bUseAutomaticGears = Settings.bUseAutomaticGears;
+	WheeledVehicleMovementComponent->TransmissionSetup.GearChangeTime = Settings.GearChangeTime;
+	WheeledVehicleMovementComponent->TransmissionSetup.FinalRatio = Settings.FinalRatio;
+
+	WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Empty();
+	for (float ForwardGearRatio : Settings.ForwardGearRatios)
+	{
+		WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(ForwardGearRatio);
+	}
+	
+	
+
+	// WheeledVehicleMovementComponent->TransmissionSetup.bUseAutomaticGears = true;
+	// WheeledVehicleMovementComponent->TransmissionSetup.bUseAutoReverse = true;
+	// WheeledVehicleMovementComponent->TransmissionSetup.FinalRatio = 2.81f;
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Empty();
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(4.25f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(2.52f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.66f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.22f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ForwardGearRatios.Add(1.0f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Empty();
+	// WheeledVehicleMovementComponent->TransmissionSetup.ReverseGearRatios.Add(4.04f);
+	// WheeledVehicleMovementComponent->TransmissionSetup.ChangeUpRPM = 6000.0f;
+	// WheeledVehicleMovementComponent->TransmissionSetup.ChangeDownRPM = 2000.0f;
+	// WheeledVehicleMovementComponent->TransmissionSetup.GearChangeTime = 0.2f;
+	// WheeledVehicleMovementComponent->TransmissionSetup.TransmissionEfficiency = 0.9f;
+}
+
+void ABaseSportsCarPawn::InitVehicleSettings()
+{
+}
+
 UChaosWheeledVehicleMovementComponent* ABaseSportsCarPawn::GetWheeledVehicleMovementComponent()
 {
 	return WheeledVehicleMovementComponent;
@@ -260,7 +361,7 @@ void ABaseSportsCarPawn::MoveForward(float Val)
 		// Get car's mesh and physics body
 		UPrimitiveComponent* MeshComp = Cast<UPrimitiveComponent>(GetRootComponent());
 		if (!MeshComp) return;
-		MeshComp->AddTorqueInRadians(FVector(0.0f, Val * 0.5f, 0.0f), NAME_None, true);
+		MeshComp->AddTorqueInRadians(FVector(0.0f, Val * 1.0f, 0.0f), NAME_None, true);
 	}
 	else
 	{
@@ -276,7 +377,7 @@ void ABaseSportsCarPawn::MoveRight(float Val)
 		// Get car's mesh and physics body
 		UPrimitiveComponent* MeshComp = Cast<UPrimitiveComponent>(GetRootComponent());
 		if (!MeshComp) return;
-		
+
 		MeshComp->AddTorqueInRadians(FVector(-Val * 0.5f, 0.0f * Val, 0.0f), NAME_None, true);
 	}
 	else

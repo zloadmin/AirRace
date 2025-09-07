@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
+#include "CarSettings.h"
 #include "BaseSportsCarPawn.generated.h"
 
 class UCameraComponent;
@@ -28,7 +29,19 @@ public:
 	ABaseSportsCarPawn();
 	AController* GetController() const;
 	AController* GetDefaultController() const;
-	
+	// private:
+	// 	ABaseSportsCarPawnSetCar();
+private:
+	void InitCarSettings();
+	void InitWheels();
+	void InitSuspensionSettings();
+	void IinitFrontWheel();
+	void InitWheelSettings();
+	void InitMechanicalSettings();
+	void InitEngineSettings();
+	void InitDifferentialSettings();
+	void InitTransmissionSettings();
+	void InitVehicleSettings();
 
 public:
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -76,8 +89,11 @@ public:
 	FText SpeedPerHundred;
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UTextRenderComponent* InCarSpeed;
-
 	bool IsFlying();
+
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Settings)
+	FCarSettings Settings = FCarSettings();
+
 private:
 	void UpdateSpeedKPH();
 	void ProcessSpeedPerHundred();
@@ -86,12 +102,13 @@ private:
 	void ShowSpeedPerHundred();
 	void ResetSpeedPerHundred();
 	void ToggleIsFlying();
+
 private :
 	bool bIsNitroEnable = false;
-	float MaxTorque = 750.0f; 
+	float MaxTorque = 750.0f;
 	float MaxTorqueNitro = 3000.0f;
 	float SpeedKPH = 0.0f;
-	
+
 	bool bSpeedPerHundredStarted = false;
 	bool bSpeedPerHundredFinished = false;
 	FDateTime SpeedPerHundredStartTime;
@@ -99,11 +116,3 @@ private :
 
 	bool bIsFlying = false;
 };
-
-
-
-
-
-
-
-

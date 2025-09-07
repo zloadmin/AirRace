@@ -15,10 +15,10 @@ void AAirRaceGameState::InitRoad()
 		
 		// Road->Add(FRoadActorParams::SimpleStraight());
 		// Road->Add(FRoadActorParams::SimpleStraight());
-		Road->Add(FRoadActorParams::SimpleClimb());
+		// Road->Add(FRoadActorParams::SimpleClimb());
 		Road->Add(FRoadActorParams::SimpleStraight());
 		// Road->Add(FRoadActorParams::SimpleStraight());
-		Road->Add(FRoadActorParams::TurnMinusOneEightZeroDegrees());
+		// Road->Add(FRoadActorParams::TurnMinusOneEightZeroDegrees());
 		// Road->Add(FRoadActorParams::SimpleStraight());
 		// Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
 		// Road->Add(FRoadActorParams::TurnOneEightZeroDegrees());
